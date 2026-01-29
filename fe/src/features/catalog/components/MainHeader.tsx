@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function MainHeader() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -13,8 +14,15 @@ export function MainHeader() {
           {/* Logo */}
           <Link href="/customer" className="flex-shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">🌿</span>
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
+                <Image
+                  src="/bachhoaxanh.jpg"
+                  alt="Bách Hóa XANH"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                  priority
+                />
               </div>
               <div className="hidden md:block">
                 <div className="font-bold text-gray-900 text-lg leading-tight">Bách Hóa</div>
