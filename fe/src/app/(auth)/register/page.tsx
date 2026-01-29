@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
 import { Checkbox } from '@/shared/ui/Checkbox'
@@ -55,10 +56,15 @@ export default function RegisterPage() {
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
       <div className="mb-8 text-center">
-        <div className="inline-block mb-4">
-          <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">🌿</span>
-          </div>
+        <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-4 bg-white border border-gray-200 shadow-sm">
+          <Image
+            src="/bachhoaxanh.jpg"
+            alt="Bách Hóa XANH"
+            width={64}
+            height={64}
+            className="w-full h-full object-cover"
+            priority
+          />
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">BÁCH HÓA XANH</h1>
         <p className="text-emerald-600 text-sm font-medium">Cổng khách hàng</p>

@@ -53,20 +53,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center px-4 py-12 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden bg-[url('/bachhoaxanh.jpg')] bg-cover bg-center bg-no-repeat">
       <div
         className="pointer-events-none absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.12),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(52,211,153,0.12),transparent_40%)]"
         aria-hidden="true"
       />
       <div className="w-full max-w-xl bg-white border border-gray-200 rounded-2xl p-10 shadow-xl relative z-10">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden mb-4">
+          <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-4 bg-white border border-gray-200 shadow-sm">
             <Image
-              src="/logo.jpg"
+              src="/bachhoaxanh.jpg"
               alt="Bách Hóa XANH"
-              width={48}
-              height={48}
-              className="object-contain"
+              width={64}
+              height={64}
+              className="w-full h-full object-cover"
               priority
             />
           </div>
