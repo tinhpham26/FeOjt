@@ -1,10 +1,9 @@
 import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
 import { HeroBanner } from '@/features/promotions/components/HeroBanner'
-import { QuickCategories } from '@/features/catalog/components/QuickCategories'
-import { BenefitCards } from '@/features/catalog/components/BenefitCards'
-import { ShortcutGrid } from '@/features/catalog/components/ShortcutGrid'
-import { FlashSaleStrip } from '@/features/promotions/components/FlashSaleStrip'
+import { CategoryGrid } from '@/features/catalog/components/CategoryGrid'
+import { PromoBlocks } from '@/features/catalog/components/PromoBlocks'
 import { ProductBlock } from '@/features/catalog/components/ProductBlock'
+import Link from 'next/link'
 
 export default function CustomerDashboard() {
   return (
@@ -13,77 +12,106 @@ export default function CustomerDashboard() {
       <CustomerHeader />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Row 1: Hero Area */}
-        <div className="grid grid-cols-12 gap-4">
-          {/* Left: Quick Categories */}
-          <div className="col-span-12 md:col-span-2">
-            <QuickCategories />
-          </div>
+      <main className="container mx-auto px-4 py-6 space-y-8">
+        {/* Hero Banner */}
+        <HeroBanner />
 
-          {/* Center: Hero Banner */}
-          <div className="col-span-12 md:col-span-7">
-            <HeroBanner />
-          </div>
+        {/* Category Grid */}
+        <CategoryGrid />
 
-          {/* Right: Benefit Cards */}
-          <div className="col-span-12 md:col-span-3">
-            <BenefitCards />
-          </div>
-        </div>
+        {/* Promo Blocks */}
+        <PromoBlocks />
 
-        {/* Row 2: Quick Shortcuts */}
-        <ShortcutGrid />
-
-        {/* Row 3: Flash Sale */}
-        <FlashSaleStrip />
-
-        {/* Row 4+: Product Blocks */}
-        <ProductBlock title="Sản phẩm nổi bật" />
-        <ProductBlock title="Rau củ tươi mới mỗi ngày" />
-        <ProductBlock title="Trái cây nhập khẩu" />
-        <ProductBlock title="Thực phẩm tiện lợi" />
+        {/* Product Section */}
+        <ProductBlock title="Rau củ tươi mỗi ngày" />
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-12">
+      <footer className="bg-gray-50 border-t border-gray-200 mt-12">
+        <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h4 className="font-bold text-lg mb-4">Về chúng tôi</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white">Giới thiệu</a></li>
-                <li><a href="#" className="hover:text-white">Liên hệ</a></li>
-                <li><a href="#" className="hover:text-white">Tuyển dụng</a></li>
+              <h4 className="font-bold text-gray-900 mb-4">Về chúng tôi</h4>
+              <ul className="space-y-2">
+                <li><Link href="/about" className="text-sm text-gray-600 hover:text-primary-600">Giới thiệu</Link></li>
+                <li><Link href="/stores" className="text-sm text-gray-600 hover:text-primary-600">Hệ thống cửa hàng</Link></li>
+                <li><Link href="/careers" className="text-sm text-gray-600 hover:text-primary-600">Tuyển dụng</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-lg mb-4">Chính sách</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white">Chính sách đổi trả</a></li>
-                <li><a href="#" className="hover:text-white">Chính sách bảo mật</a></li>
-                <li><a href="#" className="hover:text-white">Điều khoản sử dụng</a></li>
+              <h4 className="font-bold text-gray-900 mb-4">Hỗ trợ khách hàng</h4>
+              <ul className="space-y-2">
+                <li><Link href="/help" className="text-sm text-gray-600 hover:text-primary-600">Trung tâm trợ giúp</Link></li>
+                <li><Link href="/shipping" className="text-sm text-gray-600 hover:text-primary-600">Chính sách giao hàng</Link></li>
+                <li><Link href="/returns" className="text-sm text-gray-600 hover:text-primary-600">Đổi trả hàng</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-lg mb-4">Hỗ trợ</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white">Câu hỏi thường gặp</a></li>
-                <li><a href="#" className="hover:text-white">Hướng dẫn mua hàng</a></li>
-                <li><a href="#" className="hover:text-white">Tra cứu đơn hàng</a></li>
+              <h4 className="font-bold text-gray-900 mb-4">Chính sách</h4>
+              <ul className="space-y-2">
+                <li><Link href="/privacy" className="text-sm text-gray-600 hover:text-primary-600">Bảo mật thông tin</Link></li>
+                <li><Link href="/terms" className="text-sm text-gray-600 hover:text-primary-600">Điều khoản sử dụng</Link></li>
+                <li><Link href="/payment" className="text-sm text-gray-600 hover:text-primary-600">Thanh toán</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-lg mb-4">Liên hệ</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>Hotline: 1900-xxxx</li>
-                <li>Email: support@bachhoa.vn</li>
-                <li>Giờ làm việc: 8:00 - 22:00</li>
+              <h4 className="font-bold text-gray-900 mb-4">Liên hệ</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>📞 Hotline: 1900 xxxx</li>
+                <li>📧 Email: support@bhx.vn</li>
+                <li>⏰ 8:00 - 21:00 hàng ngày</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; 2026 Bách Hóa Xanh. All rights reserved.</p>
+          <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+            <p>© 2024 Bách Hóa Xanh. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400">📞</span>
+                  <span>Hotline: 1900-xxxx</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400">✉️</span>
+                  <span>support@bachhoa.vn</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400">⏰</span>
+                  <span>8:00 - 22:00 hàng ngày</span>
+                </li>
+              </ul>
+              <div className="flex gap-3 mt-4">
+                <a href="#" className="w-10 h-10 bg-white/10 hover:bg-emerald-600 rounded-full flex items-center justify-center transition-colors">
+                  <span>📘</span>
+                </a>
+                <a href="#" className="w-10 h-10 bg-white/10 hover:bg-emerald-600 rounded-full flex items-center justify-center transition-colors">
+                  <span>📷</span>
+                </a>
+                <a href="#" className="w-10 h-10 bg-white/10 hover:bg-emerald-600 rounded-full flex items-center justify-center transition-colors">
+                  <span>🐦</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bottom */}
+          <div className="border-t border-white/10 mt-8 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm text-gray-400">
+                &copy; 2026 Bách Hóa Xanh - Franchise Management System. All rights reserved.
+              </p>
+              <div className="flex gap-4 text-sm text-gray-400">
+                <a href="#" className="hover:text-emerald-400 transition-colors">Điều khoản</a>
+                <span>|</span>
+                <a href="#" className="hover:text-emerald-400 transition-colors">Quyền riêng tư</a>
+                <span>|</span>
+                <a href="#" className="hover:text-emerald-400 transition-colors">Sitemap</a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

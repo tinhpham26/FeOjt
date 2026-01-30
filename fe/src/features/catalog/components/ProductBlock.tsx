@@ -1,76 +1,70 @@
 'use client'
 
-import { useState } from 'react'
+import Link from 'next/link'
 
-const products = [
-  { id: 1, name: 'Cà chua bi', price: '25.000đ', unit: 'kg', image: '🍅', rating: 4.5 },
-  { id: 2, name: 'Táo Fuji Nhật', price: '89.000đ', unit: 'kg', image: '🍎', rating: 4.8 },
-  { id: 3, name: 'Xoài cát Hòa Lộc', price: '65.000đ', unit: 'kg', image: '🥭', rating: 4.7 },
-  { id: 4, name: 'Ớt chuông', price: '35.000đ', unit: 'kg', image: '🫑', rating: 4.3 },
-  { id: 5, name: 'Nho xanh Mỹ', price: '120.000đ', unit: 'kg', image: '🍇', rating: 4.9 },
-  { id: 6, name: 'Dưa hấu', price: '15.000đ', unit: 'kg', image: '🍉', rating: 4.4 },
-  { id: 7, name: 'Chuối', price: '20.000đ', unit: 'nải', image: '🍌', rating: 4.6 },
-  { id: 8, name: 'Dâu tây Đà Lạt', price: '85.000đ', unit: 'hộp', image: '🍓', rating: 4.8 },
+interface Product {
+  id: number
+  name: string
+  price: string
+  originalPrice?: string
+  unit: string
+  image: string
+  discount?: string
+}
+
+const products: Product[] = [
+  { id: 1, name: 'Rau cải xanh hữu cơ', price: '15,000đ', originalPrice: '20,000đ', unit: 'kg', image: '🥬', discount: '-25%' },
+  { id: 2, name: 'Cà chua bi Đà Lạt', price: '35,000đ', originalPrice: '45,000đ', unit: 'kg', image: '🍅', discount: '-22%' },
+  { id: 3, name: 'Xà lách xoong', price: '12,000đ', unit: 'kg', image: '🥗' },
+  { id: 4, name: 'Cải thảo', price: '18,000đ', originalPrice: '25,000đ', unit: 'kg', image: '🥦', discount: '-28%' },
+  { id: 5, name: 'Bông cải xanh', price: '28,000đ', unit: 'kg', image: '🥦' },
+  { id: 6, name: 'Dưa leo', price: '20,000đ', originalPrice: '25,000đ', unit: 'kg', image: '🥒', discount: '-20%' },
 ]
 
-const tabs = ['Tất cả', 'Rau củ', 'Trái cây', 'Bán chạy']
+interface ProductBlockProps {
+  title: string
+}
 
-export function ProductBlock({ title }: { title: string }) {
-  const [activeTab, setActiveTab] = useState(tabs[0])
-
+export function ProductBlock({ title }: ProductBlockProps) {
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-200">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-        <button className="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Xem tất cả →</button>
+        <Link href="/products" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+          Xem tất cả →
+        </Link>
       </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-4 mb-6 border-b">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`pb-3 px-2 font-medium transition-colors relative ${
-              activeTab === tab
-                ? 'text-emerald-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            {tab}
-            {activeTab === tab && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {products.map((product) => (
-          <div
-            key={product.id}
-            className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow cursor-pointer group"
-          >
-            <div className="relative mb-3">
-              <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-6xl group-hover:scale-105 transition-transform">
-                {product.image}
+          <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+            <Link href={`/products/${product.id}`}>
+              <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
+                {product.discount && (
+                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    {product.discount}
+                  </div>
+                )}
+                <div className="text-6xl">{product.image}</div>
               </div>
-            </div>
-            <h4 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 h-10">{product.name}</h4>
-            <div className="flex items-center gap-1 mb-2">
-              <span className="text-yellow-400">⭐</span>
-              <span className="text-xs text-gray-600">{product.rating}</span>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <div>
-                <span className="text-lg font-bold text-emerald-600">{product.price}</span>
+            </Link>
+            <div className="p-3">
+              <Link href={`/products/${product.id}`}>
+                <h4 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 hover:text-primary-600">
+                  {product.name}
+                </h4>
+              </Link>
+              <div className="flex items-baseline gap-2 mb-3">
+                <span className="text-lg font-bold text-primary-600">{product.price}</span>
+                {product.originalPrice && (
+                  <span className="text-sm text-gray-400 line-through">{product.originalPrice}</span>
+                )}
                 <span className="text-xs text-gray-500">/{product.unit}</span>
               </div>
-              <button className="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center hover:bg-emerald-700 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
+                <span className="text-sm font-medium">Thêm vào giỏ</span>
               </button>
             </div>
           </div>

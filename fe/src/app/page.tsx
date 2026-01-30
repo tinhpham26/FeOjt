@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
 import { HeroBanner } from '@/features/promotions/components/HeroBanner'
 import { QuickCategories } from '@/features/catalog/components/QuickCategories'
@@ -7,33 +10,63 @@ import { FlashSaleStrip } from '@/features/promotions/components/FlashSaleStrip'
 import { ProductBlock } from '@/features/catalog/components/ProductBlock'
 
 export default function Home() {
+  const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <CustomerHeader />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Row 1: Hero Area */}
-        <div className="grid grid-cols-12 gap-4">
-          {/* Left: Quick Categories */}
-          <div className="col-span-12 md:col-span-2">
-            <QuickCategories />
-          </div>
+      {/* Category Drawer Overlay */}
+      {isCategoryDrawerOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setIsCategoryDrawerOpen(false)}
+        />
+      )}
 
+      {/* Category Drawer */}
+      <div className={`fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+        isCategoryDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <span>🛒</span>
+              <span>Danh mục sản phẩm</span>
+            </h2>
+            <button 
+              onClick={() => setIsCategoryDrawerOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <QuickCategories onItemClick={() => setIsCategoryDrawerOpen(false)} />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-6">
+        {/* Row 1: Hero Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Center: Hero Banner */}
-          <div className="col-span-12 md:col-span-7">
+          <div className="col-span-1 lg:col-span-9">
             <HeroBanner />
           </div>
 
-          {/* Right: Benefit Cards */}
-          <div className="col-span-12 md:col-span-3">
-            <BenefitCards />
+          {/* Right: Benefit Cards - Stack on mobile, sidebar on desktop */}
+          <div className="col-span-1 lg:col-span-3">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:space-y-0">
+              <BenefitCards />
+            </div>
           </div>
         </div>
 
         {/* Row 2: Quick Shortcuts */}
-        <ShortcutGrid />
+        <ShortcutGrid onCategoryClick={() => setIsCategoryDrawerOpen(true)} />
 
         {/* Row 3: Flash Sale */}
         <FlashSaleStrip />

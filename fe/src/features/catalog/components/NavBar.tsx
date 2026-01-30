@@ -1,149 +1,204 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-
-const categories = [
-  {
-    id: 1,
-    name: 'Rau củ quả',
-    icon: '🥬',
-    subcategories: ['Rau lá', 'Củ quả', 'Nấm các loại', 'Trái cây tươi']
-  },
-  {
-    id: 2,
-    name: 'Thịt, cá, trứng',
-    icon: '🥩',
-    subcategories: ['Thịt heo', 'Thịt bò', 'Cá biển', 'Hải sản', 'Trứng']
-  },
-  {
-    id: 3,
-    name: 'Thực phẩm khô',
-    icon: '🍚',
-    subcategories: ['Gạo', 'Mì, miến', 'Gia vị', 'Dầu ăn']
-  },
-  {
-    id: 4,
-    name: 'Đồ uống',
-    icon: '🥤',
-    subcategories: ['Nước ngọt', 'Nước ép', 'Sữa', 'Bia rượu']
-  },
-  {
-    id: 5,
-    name: 'Bánh kẹo',
-    icon: '🍪',
-    subcategories: ['Bánh quy', 'Kẹo', 'Chocolate', 'Snack']
-  },
-  {
-    id: 6,
-    name: 'Chăm sóc cá nhân',
-    icon: '🧴',
-    subcategories: ['Dầu gội', 'Sữa tắm', 'Kem đánh răng', 'Mỹ phẩm']
-  },
-]
-
-const quickLinks = [
-  { name: 'Khuyến mãi', href: '/customer/promotions' },
-  { name: 'Siêu sale', href: '/customer/flash-sale' },
-  { name: 'Hàng mới về', href: '/customer/new-arrivals' },
-  { name: 'Sản phẩm bán chạy', href: '/customer/best-sellers' },
-]
+import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 export function NavBar() {
-  const [showMegaMenu, setShowMegaMenu] = useState(false)
-  const [activeCategory, setActiveCategory] = useState(categories[0])
+ 
+  const [openCat, setOpenCat] = useState(false)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  const btnRef = useRef<HTMLButtonElement | null>(null)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    const onMouseDown = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (!wrapRef.current) return
+      if (!wrapRef.current.contains(t)) setOpenCat(false)
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenCat(false)
+    }
+
+    document.addEventListener('mousedown', onMouseDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white border-b-2 border-gray-300 relative">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center gap-6 h-14">
-          {/* Category Button */}
-          <div className="relative">
+    <div className="border-b border-gray-200 bg-gray-50">
+      <div className="container mx-auto px-4">
+       <nav className="flex flex-wrap items-center gap-6 min-h-12">
+          {/* Category Dropdown */}
+          <div className="relative" ref={wrapRef}>
             <button
-              onMouseEnter={() => setShowMegaMenu(true)}
-              onMouseLeave={() => setShowMegaMenu(false)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+              ref={btnRef}
+              type="button"
+              className="flex items-center gap-2 text-sm text-gray-700 hover:text-primary-600 whitespace-nowrap font-medium"
+              aria-haspopup="menu"
+              aria-expanded={openCat}
+              onClick={() => setOpenCat((v) => !v)}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-              <span>Danh mục</span>
+              Danh mục
             </button>
 
-            {/* Mega Menu */}
-            {showMegaMenu && (
-              <div
-                onMouseEnter={() => setShowMegaMenu(true)}
-                onMouseLeave={() => setShowMegaMenu(false)}
-                className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-xl z-50 w-[800px]"
-              >
-                <div className="grid grid-cols-12 min-h-[400px]">
-                  {/* Main Categories */}
-                  <div className="col-span-4 border-r bg-gray-50 p-2">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onMouseEnter={() => setActiveCategory(cat)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                          activeCategory.id === cat.id
-                            ? 'bg-white text-emerald-600 font-medium shadow-sm'
-                            : 'hover:bg-white text-gray-700'
-                        }`}
-                      >
-                        <span className="text-2xl">{cat.icon}</span>
-                        <span>{cat.name}</span>
-                        <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Subcategories */}
-                  <div className="col-span-5 p-6">
-                    <h3 className="font-bold text-gray-900 mb-4">{activeCategory.name}</h3>
-                    <div className="grid grid-cols-1 gap-2">
-                      {activeCategory.subcategories.map((sub, idx) => (
-                        <Link
-                          key={idx}
-                          href={`/customer/category/${activeCategory.id}/${idx}`}
-                          className="text-gray-600 hover:text-emerald-600 hover:underline py-1"
-                        >
-                          {sub}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Promo Banner */}
-                  <div className="col-span-3 p-4 bg-gradient-to-br from-emerald-50 to-blue-50">
-                    <div className="bg-white rounded-lg p-4 h-full flex flex-col items-center justify-center text-center">
-                      <div className="text-4xl mb-2">🎁</div>
-                      <p className="font-bold text-gray-900 mb-1">Ưu đãi đặc biệt</p>
-                      <p className="text-xs text-gray-600 mb-3">Giảm đến 50%</p>
-                      <button className="text-xs bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700">
-                        Xem ngay
-                      </button>
-                    </div>
-                  </div>
-                </div>
+            <div
+              className={[
+                'absolute left-0 top-full mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-lg',
+                'transition duration-200 origin-top z-50',
+                openCat ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none',
+              ].join(' ')}
+              role="menu"
+            >
+              <div className="py-2">
+                <Link
+                  href="/category/trai-cay-tuoi"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🍎</span>
+                  <span className="group-hover:text-primary-600 transition-colors">Trái cây tươi</span>
+                </Link>
+                <Link
+                  href="/category/rau-cu"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🥬</span>
+                  <span className="group-hover:text-primary-600 transition-colors">Rau củ</span>
+                </Link>
+                <Link
+                  href="/category/thit-ca"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-red-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🥩</span>
+                  <span className="group-hover:text-primary-600 transition-colors">Thịt, cá</span>
+                </Link>
+                <Link
+                  href="/category/gao-mi"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🍚</span>
+                  <span className="group-hover:text-primary-600 transition-colors">Gạo, mì</span>
+                </Link>
+                <Link
+                  href="/category/nuoc-uong"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🥤</span>
+                  <span className="group-hover:text-primary-600 transition-colors">Nước uống</span>
+                </Link>
+                <Link
+                  href="/category/banh-keo"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🍪</span>
+                  <span className="group-hover:text-primary-600 transition-colors">Bánh kẹo</span>
+                </Link>
+                <div className="my-1 border-t border-gray-100" />
+                <Link
+                  href="/category/deals"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50 transition-all group"
+                  role="menuitem"
+                  onClick={() => setOpenCat(false)}
+                >
+                  <span className="text-xl group-hover:scale-110 transition-transform">🔥</span>
+                  <span className="group-hover:text-red-700 transition-colors">Khuyến mãi hot</span>
+                </Link>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Quick Links */}
-          <div className="flex items-center gap-6">
-            {quickLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm text-gray-700 hover:text-emerald-600 font-medium transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
-        </div>
+          <Link 
+            href="/category/trai-cay-tuoi" 
+            className={`text-sm whitespace-nowrap transition-colors ${
+              pathname === '/category/trai-cay-tuoi' 
+                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
+          >
+            Trái cây tươi
+          </Link>
+          <Link 
+            href="/category/rau-cu" 
+            className={`text-sm whitespace-nowrap transition-colors ${
+              pathname === '/category/rau-cu' 
+                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
+          >
+            Rau củ
+          </Link>
+          <Link 
+            href="/category/thit-ca" 
+            className={`text-sm whitespace-nowrap transition-colors ${
+              pathname === '/category/thit-ca' 
+                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
+          >
+            Thịt, cá
+          </Link>
+          <Link 
+            href="/category/gao-mi" 
+            className={`text-sm whitespace-nowrap transition-colors ${
+              pathname === '/category/gao-mi' 
+                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
+          >
+            Gạo, mì
+          </Link>
+          <Link 
+            href="/category/nuoc-uong" 
+            className={`text-sm whitespace-nowrap transition-colors ${
+              pathname === '/category/nuoc-uong' 
+                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
+          >
+            Nước uống
+          </Link>
+          <Link 
+            href="/category/banh-keo" 
+            className={`text-sm whitespace-nowrap transition-colors ${
+              pathname === '/category/banh-keo' 
+                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
+          >
+            Bánh kẹo
+          </Link>
+          <Link 
+            href="/category/khuyen-mai-hot" 
+            className={`text-sm font-medium whitespace-nowrap transition-colors ${
+              pathname === '/category/khuyen-mai-hot' 
+                ? 'text-red-700 font-bold border-b-2 border-red-600' 
+                : 'text-red-600 hover:text-red-700'
+            }`}
+          >
+            🔥 Khuyến mãi hot
+          </Link>
+        </nav>
       </div>
     </div>
   )

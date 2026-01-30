@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { TopBar } from './TopBar'
 import { MainHeader } from './MainHeader'
 import { NavBar } from './NavBar'
 
@@ -16,7 +17,8 @@ export function CustomerHeader() {
   }, [])
 
   return (
-    <header className={`sticky top-0 z-40 bg-white transition-shadow ${isScrolled ? 'shadow-lg' : 'shadow-sm'}`}>
+    <header className={`sticky top-0 z-50 bg-white transition-shadow ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
+      <TopBar />
       <MainHeader />
       <NavBar />
     </header>

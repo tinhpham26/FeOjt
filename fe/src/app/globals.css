@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-bhx-primary: #16a34a;
+  --color-bhx-dark: #15803d;
+  --color-bhx-light: #22c55e;
+  --color-bhx-lighter: #86efac;
+  --color-bhx-bg: #f0fdf4;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -24,19 +32,27 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 bg-primary text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm hover:shadow-md;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-6 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium;
+  }
+
+  .btn-bhx {
+    @apply px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
   }
 
   .input-base {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all;
   }
 
   .card {
-    @apply bg-white rounded-lg shadow-md p-6 border border-gray-100;
+    @apply bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow;
+  }
+
+  .card-bhx {
+    @apply bg-white rounded-2xl shadow-md p-6 border-2 border-emerald-100 hover:shadow-xl hover:border-emerald-300 transition-all;
   }
 
   .scrollbar-hide::-webkit-scrollbar {
@@ -46,5 +62,44 @@ body {
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .gradient-bhx {
+    @apply bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600;
+  }
+
+  .text-bhx {
+    @apply text-emerald-600;
+  }
+
+  .bg-bhx {
+    @apply bg-emerald-600;
+  }
+
+  .border-bhx {
+    @apply border-emerald-600;
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 }
