@@ -1,4 +1,5 @@
 import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
+import { CategoryBreadcrumb } from '@/features/catalog/components/CategoryBreadcrumb'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCategoryBySlug, getProductsByCategory } from '@/services/product.service'
@@ -33,11 +34,7 @@ export default async function CategoryPage({ params }: PageProps) {
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 py-6">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-          <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
-          <span>/</span>
-          <span className="text-gray-900 font-medium">{category.name}</span>
-        </nav>
+        <CategoryBreadcrumb categoryName={category.name} />
 
         {/* Category Header */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
