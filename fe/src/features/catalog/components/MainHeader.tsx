@@ -1,16 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/shared/hooks/useAuth'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 export function MainHeader() {
   const [searchQuery, setSearchQuery] = useState('')
+  const { user, isAuthenticated, logout } = useAuth()
+  const router = useRouter()
 
   return (
     <div className="border-b border-gray-250">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-5">
+          {console.log('RENDER AUTH', { user, isAuthenticated, cond: !!user && !!isAuthenticated })}
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="relative w-12 h-12 flex-shrink-0">
@@ -27,7 +32,7 @@ export function MainHeader() {
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl">
+          <div className="flex-1 max-w-2xl min-w-0">
             <div className="relative">
               <input
                 type="text"
@@ -45,7 +50,7 @@ export function MainHeader() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-9">
+          <div className="flex items-center gap-9 flex-shrink-0">
             {/* Location */}
             <button className="hidden md:flex items-center gap-2 text-gray-700 hover:text-primary-600 mr-2.5">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,13 +71,38 @@ export function MainHeader() {
               <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">0</span>
             </Link>
 
-            {/* Login */}
-            <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 mr-2.5">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="hidden sm:inline">Đăng nhập</span>
-            </Link>
+            {/* Auth action */}
+            {isAuthenticated && user ? (
+              <>
+                <Link
+                  href={user.role === 'ADMIN' ? '/admin/dashboard' : '/customer'}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 shadow-sm hover:shadow-md border border-emerald-600"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>{user.name}</span>
+                </Link>
+                {user.role === 'ADMIN' && (
+                  <button
+                    onClick={() => {
+                      logout()
+                      router.push('/')
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200"
+                  >
+                    Đăng xuất
+                  </button>
+                )}
+              </>
+            ) : (
+              <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 shadow-sm hover:shadow-md border border-emerald-600">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Đăng nhập</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

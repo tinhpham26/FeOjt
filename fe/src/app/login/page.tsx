@@ -20,12 +20,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      router.replace('/customer')
-    }
-  }, [isAuthenticated, router, user])
+  // Luôn hiển thị trang đăng nhập khi người dùng chọn "Đăng nhập"
+  // (Không tự động chuyển hướng sang trang khách hàng nếu đã đăng nhập)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,6 +30,24 @@ export default function LoginPage() {
 
     if (!emailOrPhone || !password) {
       setError('Vui lòng nhập đầy đủ thông tin')
+      setLoading(false)
+      return
+    }
+
+    // Mock admin login - use fixed credentials
+    if (emailOrPhone.toLowerCase() === 'admin@bhx.local' && password === 'admin123') {
+      const mockAdmin: User = {
+        id: 'demo-admin',
+        name: 'Quản trị viên',
+        email: 'admin@bhx.local',
+        role: 'ADMIN',
+        permissions: rolePermissions.ADMIN,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      login(mockAdmin, 'mock-token-admin')
+      router.push('/admin/dashboard')
       setLoading(false)
       return
     }
@@ -64,83 +78,125 @@ export default function LoginPage() {
     alert('Tính năng đăng nhập bằng OTP đang được phát triển')
   }
 
+  const handleAdminDemoLogin = () => {
+    const mockAdmin: User = {
+      id: 'demo-admin',
+      name: 'Quản trị viên',
+      email: 'tinhpham@gmail.com',
+      role: 'ADMIN',
+      permissions: rolePermissions.ADMIN,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    login(mockAdmin, 'mock-token-admin')
+    router.push('/admin/dashboard')
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Brand Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0F8A5F] via-[#0B6B4B] to-[#0A5A3E]">
-        {/* Decorative Pattern */}
+      <div 
+        className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#4a8e34] via-[#5a9e3e] to-[#6db84d]"
+        style={{
+          backgroundImage: 'url(/backgrpng.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Overlay để làm tối background image một chút */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#4a8e34]/70 via-[#5a9e3e]/70 to-[#6db84d]/70" />
+        
+        {/* Decorative Background Elements */}
         <div className="absolute inset-0 opacity-10">
+          {/* Grid Pattern */}
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
             `,
             backgroundSize: '60px 60px'
           }} />
         </div>
         
-        {/* Floating Circles */}
-        <div className="absolute top-20 right-20 w-32 h-32 bg-[#F9D84A] rounded-full opacity-20 blur-3xl" />
-        <div className="absolute bottom-32 left-16 w-40 h-40 bg-white rounded-full opacity-10 blur-3xl" />
-        <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-[#F9D84A] rounded-full opacity-15 blur-2xl" />
+        {/* Organic Shapes for Depth */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -left-32 w-80 h-80 bg-[#7cc85e]/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl" />
+        
+        {/* Subtle Wave Pattern */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 opacity-5">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <path d="M0 48L60 56C120 64 240 80 360 80C480 80 600 64 720 58.7C840 53 960 59 1080 64C1200 69 1320 75 1380 77.3L1440 80V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V48Z" fill="white"/>
+          </svg>
+        </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-16 py-12 text-white w-full">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 text-white/90 text-sm font-medium mb-8">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-              </svg>
-              BÁCH HÓA XANH
+        <div className="relative z-10 flex flex-col items-center justify-center px-12 py-16 text-white w-full h-full">
+          <div className="space-y-12 max-w-2xl mx-auto text-center">
+            {/* Logo */}
+            <div className="inline-flex items-center gap-3 text-white text-lg font-bold tracking-wide">
+              <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg">
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+          </svg>
+              </div>
+              <span className="text-shadow">BÁCH HÓA XANH</span>
             </div>
 
-            <h1 className="text-5xl font-bold leading-tight">
-              Chào mừng<br />quay lại
-            </h1>
-            
-            <p className="text-xl text-white/90 max-w-md">
-              Mua sắm thực phẩm tươi mỗi ngày
-            </p>
+            {/* Main Content */}
+            <div className="space-y-5">
+              <h1 className="text-6xl font-extrabold leading-[1.1] tracking-tight drop-shadow-lg">
+          Chào mừng<br />
+          <span className="text-yellow-300/90">quay lại</span>
+              </h1>
+              
+              <p className="text-xl text-white/90 leading-relaxed font-light">
+          Mua sắm thực phẩm tươi mỗi ngày
+              </p>
+            </div>
 
             {/* Feature Icons */}
-            <div className="grid grid-cols-3 gap-6 pt-12 max-w-md">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <svg className="w-7 h-7 text-[#F9D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm text-white/80">Thực phẩm<br />tươi sống</p>
+            <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
+              <div className="flex flex-col items-center text-center space-y-3 group">
+          <div className="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300 group-hover:shadow-2xl">
+            <svg className="w-8 h-8 text-[#5a9e3e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-white/95 leading-tight">Thực phẩm<br />tươi sống</p>
               </div>
               
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <svg className="w-7 h-7 text-[#F9D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <p className="text-sm text-white/80">Giao hàng<br />2 giờ</p>
+              <div className="flex flex-col items-center text-center space-y-3 group">
+          <div className="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300 group-hover:shadow-2xl">
+            <svg className="w-8 h-8 text-[#5a9e3e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-white/95 leading-tight">Giao hàng<br />2 giờ</p>
               </div>
               
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <svg className="w-7 h-7 text-[#F9D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm text-white/80">Giá cả<br />hợp lý</p>
+              <div className="flex flex-col items-center text-center space-y-3 group">
+          <div className="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300 group-hover:shadow-2xl">
+            <svg className="w-8 h-8 text-[#5a9e3e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-white/95 leading-tight">Giá cả<br />hợp lý</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+            </div>
+
 
       {/* Right Panel - Login Form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 lg:px-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
-            <div className="inline-flex items-center gap-2 text-[#0F8A5F] text-lg font-bold mb-2">
+        <div className="inline-flex items-center gap-2 text-[#7cc85e] text-lg font-bold mb-2">
               <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
               </svg>
@@ -237,6 +293,14 @@ export default function LoginPage() {
                 className="w-full py-3 px-4 border-2 border-[#0F8A5F] text-[#0F8A5F] rounded-xl font-medium hover:bg-[#0F8A5F] hover:text-white transition-all duration-200"
               >
                 Đăng nhập bằng OTP
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAdminDemoLogin}
+                className="w-full py-3 px-4 border-2 border-emerald-600 text-emerald-700 rounded-xl font-medium hover:bg-emerald-50 transition-all duration-200"
+              >
+                Đăng nhập Admin (demo)
               </button>
             </form>
 

@@ -187,6 +187,13 @@ export function Header() {
     user ? item.roles.includes(user.role) : item.roles.includes('CUSTOMER')
   )
 
+  // Fix hydration mismatch: Force logout if state inconsistent
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      logout()
+    }
+  }, [isAuthenticated, user, logout])
+
   return (
     <header className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
       isScrolled ? 'shadow-lg' : 'shadow-md'
@@ -390,9 +397,9 @@ export function Header() {
             </div>
 
             {/* Right section - Account & Cart */}
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
               {/* Account / User menu */}
-              {isAuthenticated && user ? (
+              {user && isAuthenticated ? (
                 <div ref={userMenuRef} className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
@@ -512,17 +519,12 @@ export function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="hidden md:flex items-center gap-2 hover:bg-gray-50 rounded-lg px-3 py-1.5 transition-colors group"
+                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3 md:px-4 py-2 md:py-2.5 transition-all font-medium shadow-sm hover:shadow-md"
                 >
-                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                    <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <div className="text-xs text-gray-500">Tài khoản</div>
-                    <div className="text-sm font-semibold text-gray-900">Đăng nhập</div>
-                  </div>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="text-sm font-semibold">Đăng nhập</span>
                 </Link>
               )}
 
