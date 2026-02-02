@@ -18,6 +18,7 @@ interface ProductRow {
   price: number
   status: ProductStatus
   createdAt: string
+  [key: string]: unknown
 }
 
 export default function ProductsPage() {
@@ -179,7 +180,7 @@ export default function ProductsPage() {
                 key: 'id',
                 label: 'Actions',
                 render: (_value, item) => {
-                  const row = item as ProductRow
+                  const row = item as unknown as ProductRow
                   return (
                     <div className="flex gap-2">
                       <Button

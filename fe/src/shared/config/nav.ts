@@ -9,6 +9,11 @@ export interface NavItem {
   children?: NavItem[]
 }
 
+export interface NavGroup {
+  label: string
+  items: NavItem[]
+}
+
 export const getOpsNavigation = (userPermissions: Permission[]): NavItem[] => {
   const items: NavItem[] = [
     {
@@ -62,77 +67,177 @@ export const getOpsNavigation = (userPermissions: Permission[]): NavItem[] => {
   return items
 }
 
-export const getAdminNavigation = (): NavItem[] => {
+export const getAdminNavigation = (): NavGroup[] => {
   return [
     {
-      label: 'Dashboard',
-      href: '/admin',
-      icon: 'Home',
-    },
-    {
-      label: 'Users & Roles',
-      href: '/admin/users',
-      icon: 'Users',
-      children: [
+      label: 'Tổng quan',
+      items: [
         {
-          label: 'Users',
-          href: '/admin/users',
-        },
-        {
-          label: 'Roles',
-          href: '/admin/roles',
+          label: 'Dashboard',
+          href: '/admin/dashboard',
+          icon: 'LayoutDashboard',
         },
       ],
     },
     {
-      label: 'Catalog',
-      href: '/admin/catalog',
-      icon: 'Package',
-      children: [
+      label: 'Người dùng & Phân quyền',
+      items: [
+        {
+          label: 'Users Management',
+          href: '/admin/users',
+          icon: 'Users',
+        },
+        {
+          label: 'Roles & Permissions',
+          href: '/admin/users/roles',
+          icon: 'ShieldCheck',
+        },
+      ],
+    },
+    {
+      label: 'Sản phẩm & Danh mục',
+      items: [
         {
           label: 'Products',
           href: '/admin/catalog/products',
+          icon: 'Package2',
         },
         {
           label: 'Categories',
           href: '/admin/catalog/categories',
+          icon: 'FolderTree',
         },
       ],
     },
     {
-      label: 'Inventory',
-      href: '/admin/inventory',
-      icon: 'Package',
+      label: 'Kho & Tồn kho',
+      items: [
+        {
+          label: 'Inventory Overview',
+          href: '/admin/inventory',
+          icon: 'Warehouse',
+        },
+        {
+          label: 'Item Stock',
+          href: '/admin/inventory/stock',
+          icon: 'PackageCheck',
+        },
+        {
+          label: 'Low-stock Alerts',
+          href: '/admin/inventory/alerts',
+          icon: 'AlertTriangle',
+        },
+        {
+          label: 'Inventory Logs',
+          href: '/admin/inventory/logs',
+          icon: 'ScrollText',
+        },
+      ],
     },
     {
-      label: 'Orders',
-      href: '/admin/orders',
-      icon: 'ShoppingCart',
+      label: 'Đơn hàng',
+      items: [
+        {
+          label: 'Online Orders',
+          href: '/admin/orders/online',
+          icon: 'ShoppingCart',
+        },
+        {
+          label: 'POS Orders',
+          href: '/admin/orders/pos',
+          icon: 'Store',
+        },
+        {
+          label: 'Order Status',
+          href: '/admin/orders',
+          icon: 'ListChecks',
+        },
+      ],
     },
     {
-      label: 'Promotions',
-      href: '/admin/promotions',
-      icon: 'Gift',
+      label: 'Khách hàng & Loyalty',
+      items: [
+        {
+          label: 'Customers',
+          href: '/admin/customers',
+          icon: 'UserCircle',
+        },
+        {
+          label: 'Loyalty & Points',
+          href: '/admin/loyalty',
+          icon: 'Award',
+        },
+      ],
     },
     {
-      label: 'Loyalty',
-      href: '/admin/loyalty',
-      icon: 'Heart',
+      label: 'Khuyến mãi',
+      items: [
+        {
+          label: 'Promotions',
+          href: '/admin/promotions',
+          icon: 'Tag',
+        },
+        {
+          label: 'Coupons',
+          href: '/admin/promotions/coupons',
+          icon: 'Ticket',
+        },
+      ],
     },
     {
-      label: 'Customers',
-      href: '/admin/customers',
-      icon: 'Users',
+      label: 'Giao vận',
+      items: [
+        {
+          label: 'Delivery Management',
+          href: '/admin/delivery',
+          icon: 'Truck',
+        },
+        {
+          label: 'Pickup & Shipping',
+          href: '/admin/delivery/status',
+          icon: 'PackageSearch',
+        },
+      ],
     },
     {
-      label: 'Delivery',
-      href: '/admin/delivery',
-      icon: 'Truck',
+      label: 'Báo cáo',
+      items: [
+        {
+          label: 'Sales Reports',
+          href: '/admin/reports/sales',
+          icon: 'TrendingUp',
+        },
+        {
+          label: 'Inventory Reports',
+          href: '/admin/reports/inventory',
+          icon: 'PackageOpen',
+        },
+        {
+          label: 'Profit & Loss',
+          href: '/admin/reports/finance',
+          icon: 'DollarSign',
+        },
+        {
+          label: 'All Reports',
+          href: '/admin/reports',
+          icon: 'BarChart3',
+        },
+      ],
     },
     {
-      label: 'Reports',
-      href: '/admin/reports',
-      icon: 'BarChart3',
+      label: 'Hệ thống',
+      items: [
+        {
+          label: 'Configuration',
+          href: '/admin/system/config',
+          icon: 'Settings',
+        },
+        {
+          label: 'Security',
+          href: '/admin/system/security',
+          icon: 'Lock',
+        },
+      ],
     },
   ]
 }

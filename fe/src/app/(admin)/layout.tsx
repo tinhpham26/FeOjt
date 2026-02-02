@@ -7,84 +7,57 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { getAdminNavigation } from '@/shared/config/nav'
 import { RouteGuard } from '@/shared/auth/RouteGuard'
+import { LogoutButton } from '@/shared/ui/LogoutButton'
+import { AdminSidebar } from '@/shared/ui/Sidebar/AdminSidebar'
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, logout } = useAuthStore()
   const { sidebarOpen, toggleSidebar } = useUIStore()
-  const [dropdownOpen, setDropdownOpen] = useState(false)
 
-  const navItems = getAdminNavigation()
-
-  const handleLogout = () => {
-    logout()
-    router.push('/login')
-  }
+  const navGroups = getAdminNavigation()
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-gray-900 text-white transition-all duration-300 overflow-y-auto`}
-      >
-        <div className="p-4 flex items-center justify-between">
-          {sidebarOpen && <h2 className="text-xl font-bold">Admin Console</h2>}
-          <button onClick={toggleSidebar} className="text-gray-400 hover:text-white">
-            ☰
-          </button>
-        </div>
-
-        <nav className="mt-8 space-y-2">
-          {navItems.map((item) => (
-            <div key={item.href}>
-              <Link
-                href={item.href}
-                className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                <span className="text-xl">{item.icon || '📄'}</span>
-                {sidebarOpen && <span>{item.label}</span>}
-              </Link>
-            </div>
-          ))}
-        </nav>
-      </aside>
+    <div className="flex h-screen bg-gray-50">
+      {/* Redesigned Sidebar */}
+      <AdminSidebar 
+        navigation={navGroups} 
+        isCollapsed={!sidebarOpen}
+        onToggleCollapse={toggleSidebar}
+      />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Console</h1>
-          <div className="relative">
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-3 text-gray-700 hover:text-gray-900"
-            >
-              <span className="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center">
-                {user?.name?.[0]?.toUpperCase()}
+        {/* Professional Top Bar */}
+        <header className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
+              <span className="px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">
+                LIVE
               </span>
-              <span>{user?.name}</span>
-            </button>
+            </div>
 
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                <div className="px-4 py-2 border-b border-gray-200 text-sm text-gray-600">
-                  {user?.role}
+            <div className="flex items-center gap-4">
+              {/* User Info */}
+              <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-semibold shadow-md">
+                  {user?.name?.[0]?.toUpperCase()}
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
-                >
-                  Logout
-                </button>
+                <div className="text-left">
+                  <div className="text-sm font-semibold text-slate-900">{user?.name}</div>
+                  <div className="text-xs text-slate-500">{user?.role}</div>
+                </div>
               </div>
-            )}
+
+              {/* Professional Logout Button */}
+              <LogoutButton variant="default" />
+            </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto">{children}</div>
+        <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100">{children}</div>
       </main>
     </div>
   )

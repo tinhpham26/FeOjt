@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/ui/Button'
@@ -12,7 +12,7 @@ import type { User } from '@/shared/types'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { user, isAuthenticated, login } = useAuth()
+  const { login } = useAuth()
 
   const [emailOrPhone, setEmailOrPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -145,21 +145,6 @@ export default function LoginPage() {
   const handleOTPLogin = () => {
     // TODO: Implement OTP login flow
     alert('Tính năng đăng nhập bằng OTP đang được phát triển')
-  }
-
-  const handleAdminDemoLogin = () => {
-    const mockAdmin: User = {
-      id: 'demo-admin',
-      name: 'Quản trị viên',
-      email: 'tinhpham@gmail.com',
-      role: 'ADMIN',
-      permissions: rolePermissions.ADMIN,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    login(mockAdmin, 'mock-token-admin')
-    router.push('/admin/dashboard')
   }
 
   return (
@@ -362,14 +347,6 @@ export default function LoginPage() {
                 className="w-full py-3 px-4 border-2 border-[#0F8A5F] text-[#0F8A5F] rounded-xl font-medium hover:bg-[#0F8A5F] hover:text-white transition-all duration-200"
               >
                 Đăng nhập bằng OTP
-              </button>
-
-              <button
-                type="button"
-                onClick={handleAdminDemoLogin}
-                className="w-full py-3 px-4 border-2 border-emerald-600 text-emerald-700 rounded-xl font-medium hover:bg-emerald-50 transition-all duration-200"
-              >
-                Đăng nhập Admin (demo)
               </button>
             </form>
 
