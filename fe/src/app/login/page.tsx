@@ -34,8 +34,56 @@ export default function LoginPage() {
       return
     }
 
-    // Mock admin login - use fixed credentials
-    if (emailOrPhone.toLowerCase() === 'admin@bhx.local' && password === 'admin123') {
+    const emailLower = emailOrPhone.toLowerCase().trim()
+
+    // 1) Kiểm tra các user demo được tạo từ trang Admin (/users) lưu trong localStorage
+    if (typeof window !== 'undefined') {
+      const raw = window.localStorage.getItem('demo-users')
+      if (raw) {
+        try {
+          const users = JSON.parse(raw) as Array<{
+            email: string
+            role: User['role']
+            password?: string
+          }>
+          const found = users.find(
+            (u) => u.email.toLowerCase() === emailLower && (!u.password || u.password === password)
+          )
+
+          if (found) {
+            const role = found.role
+            const mockUser: User = {
+              id: `demo-${role.toLowerCase()}`,
+              name: emailOrPhone,
+              email: emailOrPhone,
+              role,
+              permissions: rolePermissions[role as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
+
+            login(mockUser, `mock-token-${role.toLowerCase()}`)
+
+            // Điều hướng theo role
+            if (role === 'ADMIN') {
+              router.push('/admin/dashboard')
+            } else if (role === 'STORE_MANAGER' || role === 'WAREHOUSE_MANAGER' || role === 'STAFF') {
+              router.push('/ops')
+            } else {
+              router.push('/customer')
+            }
+
+            setLoading(false)
+            return
+          }
+        } catch {
+          // ignore parse error
+        }
+      }
+    }
+
+    // 2) Demo accounts cứng cho các vai trò hệ thống (chỉ dùng mock, chưa gọi API)
+    if (emailLower === 'admin@bhx.local' && password === 'admin123') {
       const mockAdmin: User = {
         id: 'demo-admin',
         name: 'Quản trị viên',
@@ -48,6 +96,27 @@ export default function LoginPage() {
 
       login(mockAdmin, 'mock-token-admin')
       router.push('/admin/dashboard')
+      setLoading(false)
+      return
+    }
+
+    // Warehouse Manager accounts
+    if (
+      (emailLower === 'warehouse@bhx.local' || emailLower === 'warehouse2@bhx.local') &&
+      password === 'warehouse123'
+    ) {
+      const mockWarehouse: User = {
+        id: 'demo-warehouse',
+        name: 'Warehouse Manager',
+        email: emailLower,
+        role: 'WAREHOUSE_MANAGER',
+        permissions: rolePermissions.WAREHOUSE_MANAGER,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      login(mockWarehouse, 'mock-token-warehouse')
+      router.push('/ops')
       setLoading(false)
       return
     }

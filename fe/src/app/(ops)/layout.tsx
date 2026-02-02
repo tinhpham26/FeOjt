@@ -94,7 +94,7 @@ function OpsShell({ children }: { children: React.ReactNode }) {
 
 export default function OpsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RouteGuard allowedRoles={['STAFF', 'STORE_MANAGER', 'WAREHOUSE_MANAGER']}>
+    <RouteGuard allowedRoles={['STAFF', 'STORE_MANAGER', 'WAREHOUSE_MANAGER', 'ADMIN']}>
       <OpsShell>{children}</OpsShell>
     </RouteGuard>
   )
