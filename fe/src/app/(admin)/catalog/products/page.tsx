@@ -1,14 +1,125 @@
+ 'use client'
+
+import { useEffect, useState } from 'react'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { DataTable } from '@/shared/ui/DataTable'
+import { Input } from '@/shared/ui/Input'
+import Modal from '@/shared/ui/Modal'
+
+type ProductStatus = 'ACTIVE' | 'INACTIVE'
+
+interface ProductRow {
+  id: string
+  sku: string
+  name: string
+  category: string
+  price: number
+  status: ProductStatus
+  createdAt: string
+}
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<ProductRow[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [mode, setMode] = useState<'create' | 'edit'>('create')
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const [sku, setSku] = useState('')
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState('')
+  const [price, setPrice] = useState<number>(0)
+  const [status, setStatus] = useState<ProductStatus>('ACTIVE')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const raw = window.localStorage.getItem('demo-products')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw) as ProductRow[]
+      setProducts(parsed)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const syncProducts = (next: ProductRow[]) => {
+    setProducts(next)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('demo-products', JSON.stringify(next))
+    }
+  }
+
+  const handleOpenCreate = () => {
+    setMode('create')
+    setEditingId(null)
+    setSku('')
+    setName('')
+    setCategory('')
+    setPrice(0)
+    setStatus('ACTIVE')
+    setIsModalOpen(true)
+  }
+
+  const handleEdit = (row: ProductRow) => {
+    setMode('edit')
+    setEditingId(row.id)
+    setSku(row.sku)
+    setName(row.name)
+    setCategory(row.category)
+    setPrice(row.price)
+    setStatus(row.status)
+    setIsModalOpen(true)
+  }
+
+  const handleDelete = (id: string) => {
+    const next = products.filter((p) => p.id !== id)
+    syncProducts(next)
+  }
+
+  const handleClose = () => {
+    setIsModalOpen(false)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (mode === 'create') {
+      const newRow: ProductRow = {
+        id: `prod-${Date.now()}`,
+        sku,
+        name,
+        category,
+        price,
+        status,
+        createdAt: new Date().toISOString(),
+      }
+      syncProducts([...products, newRow])
+    } else if (mode === 'edit' && editingId) {
+      const next = products.map((p) =>
+        p.id === editingId
+          ? { ...p, sku, name, category, price, status }
+          : p
+      )
+      syncProducts(next)
+    }
+
+    setIsModalOpen(false)
+  }
+
+  const createProductButton = (
+    <Button onClick={handleOpenCreate}>
+      Create Product
+    </Button>
+  )
+
   return (
     <div className="p-6">
       <PageHeader
         title="Products"
         subtitle="Manage product catalog"
-        actions={<Button>Create Product</Button>}
+        actions={createProductButton}
         breadcrumbs={[
           { label: 'Admin', href: '/admin' },
           { label: 'Catalog', href: '/admin/catalog' },
@@ -17,12 +128,149 @@ export default function ProductsPage() {
       />
 
       <div className="card">
-        <EmptyState
-          title="No Products"
-          description="Add your first product to the catalog"
-          action={<Button>Create Product</Button>}
-        />
+        {products.length === 0 ? (
+          <EmptyState
+            title="No Products"
+            description="Add your first product to the catalog"
+            action={createProductButton}
+          />
+        ) : (
+          <DataTable
+            data={products}
+            columns={[
+              { key: 'sku', label: 'SKU' },
+              { key: 'name', label: 'Name' },
+              { key: 'category', label: 'Category' },
+              {
+                key: 'price',
+                label: 'Price',
+                render: (value) =>
+                  new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                  }).format(value as number),
+              },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (value) => (
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      value === 'ACTIVE'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {value === 'ACTIVE' ? 'Active' : 'Inactive'}
+                  </span>
+                ),
+              },
+              {
+                key: 'createdAt',
+                label: 'Created At',
+                render: (value) =>
+                  new Date(value as string).toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  }),
+              },
+              {
+                key: 'id',
+                label: 'Actions',
+                render: (_value, item) => {
+                  const row = item as ProductRow
+                  return (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(row)
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(row.id)
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  )
+                },
+              },
+            ]}
+          />
+        )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleClose}
+        title={mode === 'create' ? 'Create Product' : 'Edit Product'}
+        size="md"
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>
+              Save
+            </Button>
+          </div>
+        }
+      >
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <Input
+            label="SKU"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            placeholder="SKU-001"
+            required
+          />
+          <Input
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Gạo thơm ST25"
+            required
+          />
+          <Input
+            label="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Gạo, mì"
+            required
+          />
+          <Input
+            label="Price"
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(Number(e.target.value))}
+            required
+          />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as ProductStatus)}
+            >
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
