@@ -121,30 +121,9 @@ export default function LoginPage() {
       return
     }
 
-    // TODO: Replace with actual API call
-    // Example: const response = await authService.login({ emailOrPhone, password })
-    
-    // Mock login for customer
-    setTimeout(() => {
-      const mockUser: User = {
-        id: 'demo-customer',
-        name: 'Khách hàng',
-        email: emailOrPhone,
-        role: 'CUSTOMER',
-        permissions: rolePermissions.CUSTOMER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      login(mockUser, 'mock-token-customer')
-      router.push('/customer')
-      setLoading(false)
-    }, 800)
-  }
-
-  const handleOTPLogin = () => {
-    // TODO: Implement OTP login flow
-    alert('Tính năng đăng nhập bằng OTP đang được phát triển')
+    // If no valid credentials found, show error
+    setError('Email/Số điện thoại hoặc mật khẩu không chính xác')
+    setLoading(false)
   }
 
   return (
@@ -340,14 +319,6 @@ export default function LoginPage() {
                   'Đăng nhập'
                 )}
               </Button>
-
-              <button
-                type="button"
-                onClick={handleOTPLogin}
-                className="w-full py-3 px-4 border-2 border-[#0F8A5F] text-[#0F8A5F] rounded-xl font-medium hover:bg-[#0F8A5F] hover:text-white transition-all duration-200"
-              >
-                Đăng nhập bằng OTP
-              </button>
             </form>
 
             <div className="mt-8 text-center">

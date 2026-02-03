@@ -15,7 +15,6 @@ export function MainHeader() {
     <div className="border-b border-gray-250">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-5">
-          {console.log('RENDER AUTH', { user, isAuthenticated, cond: !!user && !!isAuthenticated })}
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="relative w-12 h-12 flex-shrink-0">
@@ -75,13 +74,13 @@ export function MainHeader() {
             {isAuthenticated && user ? (
               <>
                 <Link
-                  href={user.role === 'ADMIN' ? '/admin/dashboard' : '/customer'}
+                  href={user.role === 'ADMIN' ? '/admin/dashboard' : '/customer/profile'}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 shadow-sm hover:shadow-md border border-emerald-600"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span>{user.name}</span>
+                  <span>{user.role === 'CUSTOMER' ? 'Khách hàng' : user.name}</span>
                 </Link>
                 {user.role === 'ADMIN' && (
                   <button

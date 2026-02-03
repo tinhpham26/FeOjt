@@ -12,7 +12,16 @@ import { endpoints } from '@/shared/api/endpoints'
 import { getErrorMessage } from '@/shared/api/errors'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  emailOrPhone: z.string().min(1, 'Vui lòng nhập email hoặc số điện thoại').refine(
+    (value) => {
+      // Check if it's a valid email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      // Check if it's a valid Vietnamese phone number (10 digits starting with 0)
+      const phoneRegex = /^0\d{9}$/
+      return emailRegex.test(value) || phoneRegex.test(value)
+    },
+    { message: 'Email hoặc số điện thoại không hợp lệ' }
+  ),
 })
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>
@@ -35,10 +44,14 @@ export default function ForgotPasswordPage() {
     setError('')
 
     try {
-      await axiosInstance.post(endpoints.auth.forgotPassword, data)
+      // TODO: Replace with actual API call
+      // await axiosInstance.post(endpoints.auth.forgotPassword, data)
+      
+      // Mock success for demo
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       setSuccess(true)
     } catch (err) {
-      setError(getErrorMessage(err) || 'Failed to send reset email.')
+      setError(getErrorMessage(err) || 'Không thể gửi yêu cầu. Vui lòng thử lại sau.')
     } finally {
       setLoading(false)
     }
@@ -46,51 +59,97 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-        <div className="mb-4 text-4xl">✉️</div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h1>
-        <p className="text-gray-600 mb-6">
-          We have sent a password reset link to your email address. Please check your inbox and
-          follow the instructions.
-        </p>
-        <Link href="/login">
-          <Button fullWidth>Back to Sign In</Button>
-        </Link>
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Yêu cầu đã được gửi</h1>
+            <p className="text-gray-600 mb-6">
+              Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email/số điện thoại của bạn. 
+              Vui lòng kiểm tra và làm theo hướng dẫn.
+            </p>
+            <Link href="/login">
+              <Button fullWidth className="bg-emerald-600 hover:bg-emerald-700">
+                Quay lại đăng nhập
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Reset Password</h1>
-        <p className="text-gray-600 mt-2">Enter your email to receive a password reset link</p>
-      </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-          {error}
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 text-emerald-600 text-lg font-bold mb-2">
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+            </svg>
+            BÁCH HÓA XANH
+          </div>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          placeholder="you@example.com"
-          {...register('email')}
-          error={errors.email?.message}
-        />
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="mb-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Quên mật khẩu</h1>
+            <p className="text-gray-600 text-sm">
+              Nhập email hoặc số điện thoại đã đăng ký để nhận hướng dẫn đặt lại mật khẩu
+            </p>
+          </div>
 
-        <Button type="submit" fullWidth loading={loading}>
-          Send Reset Link
-        </Button>
-      </form>
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
+              <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
 
-      <div className="text-center mt-6">
-        <Link href="/login" className="text-blue-600 hover:text-blue-700 text-sm">
-          Back to Sign In
-        </Link>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <Input
+              label="Email hoặc Số điện thoại"
+              type="text"
+              placeholder="0901234567 hoặc email@example.com"
+              {...register('emailOrPhone')}
+              error={errors.emailOrPhone?.message}
+              className="focus:border-emerald-500 focus:ring-emerald-500"
+            />
+
+            <Button 
+              type="submit" 
+              fullWidth 
+              loading={loading}
+              className="bg-emerald-600 hover:bg-emerald-700"
+              size="lg"
+            >
+              {loading ? 'Đang gửi...' : 'Gửi yêu cầu'}
+            </Button>
+          </form>
+
+          <div className="text-center mt-6">
+            <Link href="/login" className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+              ← Quay lại đăng nhập
+            </Link>
+          </div>
+        </div>
+
+        {/* Help text */}
+        <div className="mt-6 text-center text-xs text-gray-500">
+          <p>Bạn gặp khó khăn? Liên hệ hotline <span className="font-semibold text-emerald-600">1900 959999</span></p>
+        </div>
       </div>
     </div>
   )

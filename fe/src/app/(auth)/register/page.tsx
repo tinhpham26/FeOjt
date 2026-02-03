@@ -73,8 +73,8 @@ export default function RegisterPage() {
         <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-[#F9D84A] rounded-full opacity-15 blur-2xl" />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-16 py-12 text-white w-full">
-          <div className="space-y-6">
+        <div className="relative z-10 flex flex-col items-center justify-center px-16 py-12 text-white w-full">
+          <div className="space-y-6 flex flex-col items-center justify-center text-center">
             <div className="inline-flex items-center gap-2 text-white/90 text-sm font-medium mb-8">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
@@ -91,8 +91,8 @@ export default function RegisterPage() {
             </p>
 
             {/* Feature Icons */}
-            <div className="grid grid-cols-3 gap-6 pt-12 max-w-md">
-              <div className="flex flex-col items-center text-center space-y-3">
+            <div className="grid grid-cols-3 gap-6 pt-12 max-w-md w-full">
+              <div className="flex flex-col items-center justify-center text-center space-y-3">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
                   <svg className="w-7 h-7 text-[#F9D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -101,7 +101,7 @@ export default function RegisterPage() {
                 <p className="text-sm text-white/80">Thực phẩm<br />tươi sống</p>
               </div>
               
-              <div className="flex flex-col items-center text-center space-y-3">
+              <div className="flex flex-col items-center justify-center text-center space-y-3">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
                   <svg className="w-7 h-7 text-[#F9D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -110,7 +110,7 @@ export default function RegisterPage() {
                 <p className="text-sm text-white/80">Giao hàng<br />2 giờ</p>
               </div>
               
-              <div className="flex flex-col items-center text-center space-y-3">
+              <div className="flex flex-col items-center justify-center text-center space-y-3">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
                   <svg className="w-7 h-7 text-[#F9D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -127,7 +127,7 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 lg:px-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 text-center">
+          <div className="lg:hidden mb-8 flex justify-center">
             <div className="inline-flex items-center gap-2 text-[#0F8A5F] text-lg font-bold mb-2">
               <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
@@ -138,11 +138,11 @@ export default function RegisterPage() {
 
           {/* Form Card */}
           <div className="bg-white rounded-2xl shadow-xl p-8 lg:p-10">
-            <div className="mb-8">
+            <div className="mb-8 flex flex-col items-center justify-center text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Đăng ký tài khoản
               </h2>
-              <p className="text-sm text-gray-600 flex items-center gap-2">
+              <p className="text-sm text-gray-600 flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 text-[#0F8A5F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -264,7 +264,7 @@ export default function RegisterPage() {
               </Button>
             </form>
 
-            <div className="mt-8 text-center">
+            <div className="mt-8 flex justify-center">
               <p className="text-sm text-gray-600">
                 Đã có tài khoản?{' '}
                 <Link 
