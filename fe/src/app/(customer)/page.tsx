@@ -1,6 +1,12 @@
+import Link from 'next/link'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
+import { HeroBanner } from '@/features/promotions/components/HeroBanner'
+import { CategoryGrid } from '@/features/catalog/components/CategoryGrid'
+import { PromoBlocks } from '@/features/catalog/components/PromoBlocks'
+import { ProductBlock } from '@/features/catalog/components/ProductBlock'
 
 export default function CustomerDashboardPage() {
   return (

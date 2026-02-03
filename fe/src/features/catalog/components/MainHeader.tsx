@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/shared/hooks/useAuth'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,8 +8,26 @@ import { useRouter } from 'next/navigation'
 
 export function MainHeader() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const router = useRouter()
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+    setShowUserMenu(false)
+    router.push('/')
+  }
 
   return (
     <div className="border-b border-green-700/30">
@@ -92,28 +110,46 @@ export function MainHeader() {
 
             {/* Auth action */}
             {isAuthenticated && user ? (
-              <>
-                <Link
-                  href={user.role === 'ADMIN' ? '/admin/dashboard' : '/customer/profile'}
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-white rounded-lg hover:bg-green-50 shadow-sm hover:shadow-md border border-white"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span>{user.role === 'CUSTOMER' ? 'Khách hàng' : user.name}</span>
-                </Link>
-                {user.role === 'ADMIN' && (
-                  <button
-                    onClick={() => {
-                      logout()
-                      router.push('/')
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-green-700 bg-white rounded-lg hover:bg-green-50 border border-white"
-                  >
-                    Đăng xuất
-                  </button>
+                  <span>{user.name || 'Khách hàng'}</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <Link
+                      href={user.role === 'ADMIN' ? '/admin/dashboard' : '/customer/profile'}
+                      onClick={() => setShowUserMenu(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>{user.role === 'ADMIN' ? 'Dashboard' : 'Tài khoản'}</span>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
                 )}
-              </>
+              </div>
             ) : (
               <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-white rounded-lg hover:bg-green-50 shadow-sm hover:shadow-md border border-white">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
