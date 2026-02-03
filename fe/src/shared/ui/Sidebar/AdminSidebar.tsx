@@ -81,7 +81,9 @@ export function AdminSidebar({ navigation, isCollapsed, onToggleCollapse }: Admi
   }
 
   const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/')
+    // Chỉ active khi trùng đúng route của item
+    // Tránh trường hợp item cha (/admin/promotions) cũng active khi đang ở /admin/promotions/coupons
+    return pathname === href
   }
 
   const getIcon = (iconName?: string) => {
