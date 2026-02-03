@@ -52,7 +52,23 @@ export async function executeQuery<T = any>(
   // Add parameters if provided
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      request.input(key, value)
+      // Explicitly set SQL type for string values to handle long strings like password hashes
+      if (typeof value === 'string') {
+        // Use NVarChar with max length for long strings
+        if (value.length > 255 || key.toLowerCase().includes('hash') || key.toLowerCase().includes('password')) {
+          request.input(key, sql.NVarChar(sql.MAX), value)
+        } else {
+          request.input(key, sql.NVarChar(255), value)
+        }
+      } else if (typeof value === 'number') {
+        request.input(key, sql.Int, value)
+      } else if (typeof value === 'boolean') {
+        request.input(key, sql.Bit, value)
+      } else if (value === null || value === undefined) {
+        request.input(key, sql.NVarChar(sql.MAX), null)
+      } else {
+        request.input(key, value)
+      }
     })
   }
 
@@ -70,7 +86,22 @@ export async function executeProcedure<T = any>(
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      request.input(key, value)
+      // Explicitly set SQL type for string values
+      if (typeof value === 'string') {
+        if (value.length > 255 || key.toLowerCase().includes('hash') || key.toLowerCase().includes('password')) {
+          request.input(key, sql.NVarChar(sql.MAX), value)
+        } else {
+          request.input(key, sql.NVarChar(255), value)
+        }
+      } else if (typeof value === 'number') {
+        request.input(key, sql.Int, value)
+      } else if (typeof value === 'boolean') {
+        request.input(key, sql.Bit, value)
+      } else if (value === null || value === undefined) {
+        request.input(key, sql.NVarChar(sql.MAX), null)
+      } else {
+        request.input(key, value)
+      }
     })
   }
 
