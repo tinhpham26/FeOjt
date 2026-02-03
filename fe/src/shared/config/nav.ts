@@ -114,12 +114,12 @@ export const getAdminNavigation = (): NavGroup[] => {
       items: [
         {
           label: 'Inventory Overview',
-          href: '/admin/inventory',
+          href: '/inventory-admin',
           icon: 'Warehouse',
         },
         {
           label: 'Item Stock',
-          href: '/admin/inventory/stock',
+          href: '/inventory-admin/stock',
           icon: 'PackageCheck',
         },
         {

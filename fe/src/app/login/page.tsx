@@ -121,25 +121,17 @@ export default function LoginPage() {
       return
     }
 
+    // 3) Nếu không match với bất kỳ account nào → hiển thị lỗi
+    setError('Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại.')
+    setLoading(false)
+    
     // TODO: Replace with actual API call
     // Example: const response = await authService.login({ emailOrPhone, password })
-    
-    // Mock login for customer
-    setTimeout(() => {
-      const mockUser: User = {
-        id: 'demo-customer',
-        name: 'Khách hàng',
-        email: emailOrPhone,
-        role: 'CUSTOMER',
-        permissions: rolePermissions.CUSTOMER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      login(mockUser, 'mock-token-customer')
-      router.push('/customer')
-      setLoading(false)
-    }, 800)
+    // if (!response.success) {
+    //   setError(response.message || 'Sai tài khoản hoặc mật khẩu')
+    //   setLoading(false)
+    //   return
+    // }
   }
 
   const handleOTPLogin = () => {
