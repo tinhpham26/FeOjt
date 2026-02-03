@@ -1,0 +1,117 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { executeQuery } from '@/lib/db/config'
+import bcrypt from 'bcryptjs'
+
+// GET /api/users - List all users
+export async function GET(request: NextRequest) {
+  try {
+    const query = `
+      SELECT 
+        u.id,
+        u.email,
+        u.full_name as name,
+        u.status,
+        r.name as role,
+        u.created_at as createdAt
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      ORDER BY u.created_at DESC
+    `
+
+    const users = await executeQuery(query)
+
+    return NextResponse.json(users)
+  } catch (error) {
+    console.error('Get users error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch users' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST /api/users - Create new user
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { name, email, password, role } = body
+
+    if (!name || !email || !password || !role) {
+      return NextResponse.json(
+        { error: 'Name, email, password, and role are required' },
+        { status: 400 }
+      )
+    }
+
+    // Get role_id from role name
+    const roleQuery = `SELECT id FROM roles WHERE name = @role`
+    const roles = await executeQuery<{ id: string }>(roleQuery, { role })
+    
+    if (roles.length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid role' },
+        { status: 400 }
+      )
+    }
+
+    const roleId = roles[0].id
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 10)
+
+    // Insert user
+    const insertQuery = `
+      INSERT INTO users (email, password_hash, full_name, role_id, status)
+      OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.status, INSERTED.created_at
+      VALUES (@email, @password_hash, @name, @role_id, 'ACTIVE')
+    `
+
+    const result = await executeQuery<{
+      id: string
+      email: string
+      full_name: string
+      status: string
+      created_at: string
+    }>(insertQuery, {
+      email,
+      password_hash: passwordHash,
+      name,
+      role_id: roleId,
+    })
+
+    if (result.length === 0) {
+      return NextResponse.json(
+        { error: 'Failed to create user' },
+        { status: 500 }
+      )
+    }
+
+    const newUser = result[0]
+
+    return NextResponse.json({
+      id: newUser.id,
+      name: newUser.full_name,
+      email: newUser.email,
+      role,
+      status: newUser.status,
+      createdAt: newUser.created_at,
+    }, { status: 201 })
+  } catch (error: any) {
+    console.error('Create user error:', error)
+    
+    // Handle duplicate email error
+    if (error.number === 2627 || error.message?.includes('UNIQUE')) {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to create user' },
+      { status: 500 }
+    )
+  }
+}
+
+

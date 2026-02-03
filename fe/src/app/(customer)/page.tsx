@@ -1,11 +1,8 @@
-import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
-import { HeroBanner } from '@/features/promotions/components/HeroBanner'
-import { CategoryGrid } from '@/features/catalog/components/CategoryGrid'
-import { PromoBlocks } from '@/features/catalog/components/PromoBlocks'
-import { ProductBlock } from '@/features/catalog/components/ProductBlock'
-import Link from 'next/link'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Button } from '@/shared/ui/Button'
+import { EmptyState } from '@/shared/ui/EmptyState'
 
-export default function CustomerDashboard() {
+export default function CustomerDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -57,17 +54,19 @@ export default function CustomerDashboard() {
             <div>
               <h4 className="font-bold text-gray-900 mb-4">Liên hệ</h4>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>📞 Hotline: 1900 9999</li>
+                <li>📞 Hotline: 1900 xxxx</li>
                 <li>📧 Email: support@bhx.vn</li>
-                <li>⏰ 7:00 - 21:00 hàng ngày</li>
+                <li>⏰ 8:00 - 21:00 hàng ngày</li>
               </ul>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>© 2026 Bách Hóa Xanh. All rights reserved.</p>
+            <p>© 2024 Bách Hóa Xanh. All rights reserved.</p>
           </div>
         </div>
       </footer>
     </div>
   )
 }
+
+

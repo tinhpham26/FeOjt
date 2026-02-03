@@ -15,12 +15,10 @@ export default function CustomerOrdersPage() {
       />
 
       <div className="card">
-        <EmptyState
-          title="No Orders Yet"
-          description="You haven't placed any orders yet. Start shopping now!"
-          action={<Button>Browse Products</Button>}
-        />
+        <EmptyState title="No Orders Yet" description="You haven't placed any orders yet. Start shopping now!" action={<Button>Browse Products</Button>} />
       </div>
     </div>
   )
 }
+
+

@@ -124,12 +124,12 @@ export const getAdminNavigation = (): NavGroup[] => {
         },
         {
           label: 'Low-stock Alerts',
-          href: '/admin/inventory/alerts',
+          href: '/inventory-admin/alerts',
           icon: 'AlertTriangle',
         },
         {
           label: 'Inventory Logs',
-          href: '/admin/inventory/logs',
+          href: '/inventory-admin/logs',
           icon: 'ScrollText',
         },
       ],
