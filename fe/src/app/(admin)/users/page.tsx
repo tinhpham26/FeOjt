@@ -27,6 +27,7 @@ export default function UsersPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const [role, setRole] = useState('STAFF')
   const [users, setUsers] = useState<User[]>([])
 
@@ -51,12 +52,36 @@ export default function UsersPage() {
     }
   }
 
+  // Validate password
+  const validatePassword = (pwd: string): string => {
+    if (!pwd) return 'Mật khẩu là bắt buộc'
+    
+    if (pwd.length < 6) {
+      return 'Mật khẩu phải có ít nhất 6 ký tự'
+    }
+    
+    if (!/^[A-Z]/.test(pwd)) {
+      return 'Mật khẩu phải bắt đầu bằng chữ cái viết hoa'
+    }
+    
+    if (!/\d/.test(pwd)) {
+      return 'Mật khẩu phải chứa ít nhất 1 chữ số'
+    }
+    
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) {
+      return 'Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt'
+    }
+    
+    return ''
+  }
+
   const handleOpenCreate = () => {
     setMode('create')
     setEditingId(null)
     setName('')
     setEmail('')
     setPassword('')
+    setPasswordError('')
     setRole('STAFF')
     setIsModalOpen(true)
   }
@@ -66,6 +91,7 @@ export default function UsersPage() {
     setName('')
     setEmail('')
     setPassword('')
+    setPasswordError('')
     setRole('STAFF')
   }
 
@@ -75,6 +101,7 @@ export default function UsersPage() {
     setName(user.name)
     setEmail(user.email)
     setPassword('')
+    setPasswordError('')
     setRole(user.role)
     setIsModalOpen(true)
   }
@@ -92,6 +119,24 @@ export default function UsersPage() {
   const handleSubmitUser = (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Validate password
+    if (mode === 'create') {
+      const pwdError = validatePassword(password)
+      if (pwdError) {
+        setPasswordError(pwdError)
+        return
+      }
+    } else if (mode === 'edit' && password) {
+      // Chỉ validate nếu có nhập password mới
+      const pwdError = validatePassword(password)
+      if (pwdError) {
+        setPasswordError(pwdError)
+        return
+      }
+    }
+
+    setPasswordError('')
+
     if (mode === 'create') {
       const newUser: User = {
         id: `user-${Date.now()}`,
@@ -99,7 +144,7 @@ export default function UsersPage() {
         email,
         role,
         status: 'ACTIVE',
-        ...(password ? { password } : {}),
+        password,
         createdAt: new Date().toISOString(),
       }
 
@@ -275,14 +320,55 @@ export default function UsersPage() {
             placeholder="user@example.com"
             required
           />
-          <Input
-            label={mode === 'create' ? 'Password' : 'New Password (optional)'}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={mode === 'create' ? '••••••••' : 'Leave blank to keep current password'}
-            required={mode === 'create'}
-          />
+          <div>
+            <Input
+              label={mode === 'create' ? 'Password' : 'New Password (optional)'}
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (passwordError) {
+                  setPasswordError('')
+                }
+              }}
+              placeholder={mode === 'create' ? '••••••••' : 'Leave blank to keep current password'}
+              required={mode === 'create'}
+              className={passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+            />
+            {passwordError && (
+              <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+            )}
+            {!passwordError && password && (
+              <div className="mt-2 text-xs text-gray-600 space-y-1">
+                <p className="font-medium">Yêu cầu mật khẩu:</p>
+                <ul className="list-disc list-inside space-y-0.5 ml-2">
+                  <li className={password.length >= 6 ? 'text-green-600' : 'text-gray-500'}>
+                    Độ dài từ 6 ký tự trở lên {password.length >= 6 ? '✓' : ''}
+                  </li>
+                  <li className={/^[A-Z]/.test(password) ? 'text-green-600' : 'text-gray-500'}>
+                    Bắt đầu bằng chữ cái viết hoa {/^[A-Z]/.test(password) ? '✓' : ''}
+                  </li>
+                  <li className={/\d/.test(password) ? 'text-green-600' : 'text-gray-500'}>
+                    Có ít nhất 1 chữ số {/\d/.test(password) ? '✓' : ''}
+                  </li>
+                  <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-green-600' : 'text-gray-500'}>
+                    Có ít nhất 1 ký tự đặc biệt {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : ''}
+                  </li>
+                </ul>
+              </div>
+            )}
+            {!password && mode === 'create' && (
+              <div className="mt-2 text-xs text-gray-600 space-y-1">
+                <p className="font-medium">Yêu cầu mật khẩu:</p>
+                <ul className="list-disc list-inside space-y-0.5 ml-2">
+                  <li>Độ dài từ 6 ký tự trở lên</li>
+                  <li>Bắt đầu bằng chữ cái viết hoa</li>
+                  <li>Có ít nhất 1 chữ số</li>
+                  <li>Có ít nhất 1 ký tự đặc biệt</li>
+                </ul>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">
               Role

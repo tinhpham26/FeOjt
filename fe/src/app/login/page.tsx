@@ -121,9 +121,34 @@ export default function LoginPage() {
       return
     }
 
-    // If no valid credentials found, show error
-    setError('Email/Số điện thoại hoặc mật khẩu không chính xác')
-    setLoading(false)
+    // TODO: Replace with actual API call
+    // Example: const response = await authService.login({ emailOrPhone, password })
+    
+    // Mock login for customer
+    setTimeout(() => {
+      const mockUser: User = {
+        id: 'demo-customer',
+        name: 'Khách hàng',
+        email: emailOrPhone,
+        role: 'CUSTOMER',
+        permissions: rolePermissions.CUSTOMER,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      login(mockUser, 'mock-token-customer')
+      router.push('/customer')
+      setLoading(false)
+    }, 800)
+  }
+
+  const handleOTPLogin = () => {
+    // TODO: Implement OTP login flow
+    alert('Tính năng đăng nhập bằng OTP đang được phát triển')
+  }
+
+  const goBackToHomepage = () => {
+    router.push('/')
   }
 
   return (
@@ -227,6 +252,23 @@ export default function LoginPage() {
       {/* Right Panel - Login Form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 lg:px-12">
         <div className="w-full max-w-md">
+          {/* Back Button */}
+          <button
+            onClick={goBackToHomepage}
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+            aria-label="Quay lại trang chủ"
+          >
+            <svg 
+              className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-sm font-medium">Quay lại trang chủ</span>
+          </button>
+
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
         <div className="inline-flex items-center gap-2 text-[#7cc85e] text-lg font-bold mb-2">

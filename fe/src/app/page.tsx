@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
 import { HeroBanner } from '@/features/promotions/components/HeroBanner'
 import { QuickCategories } from '@/features/catalog/components/QuickCategories'
-import { BenefitCards } from '@/features/catalog/components/BenefitCards'
 import { ShortcutGrid } from '@/features/catalog/components/ShortcutGrid'
 import { FlashSaleStrip } from '@/features/promotions/components/FlashSaleStrip'
 import { ProductBlock } from '@/features/catalog/components/ProductBlock'
@@ -50,20 +49,8 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-6">
-        {/* Row 1: Hero Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Center: Hero Banner */}
-          <div className="col-span-1 lg:col-span-9">
-            <HeroBanner />
-          </div>
-
-          {/* Right: Benefit Cards - Stack on mobile, sidebar on desktop */}
-          <div className="col-span-1 lg:col-span-3">
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:space-y-0">
-              <BenefitCards />
-            </div>
-          </div>
-        </div>
+        {/* Hero Banner - Full Width */}
+        <HeroBanner />
 
         {/* Row 2: Quick Shortcuts */}
         <ShortcutGrid onCategoryClick={() => setIsCategoryDrawerOpen(true)} />
@@ -109,9 +96,9 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-lg mb-4">Liên hệ</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>Hotline: 1900-xxxx</li>
+                <li>Hotline: 1900-9999</li>
                 <li>Email: support@bachhoa.vn</li>
-                <li>Giờ làm việc: 8:00 - 22:00</li>
+                <li>Giờ làm việc: 7:00 - 21:00</li>
               </ul>
             </div>
           </div>

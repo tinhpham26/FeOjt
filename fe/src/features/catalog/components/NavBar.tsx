@@ -31,7 +31,7 @@ export function NavBar() {
   }, [])
 
   return (
-    <div className="border-b border-gray-200 bg-gray-50">
+    <div className="border-t border-green-700/30 bg-green-700">
       <div className="container mx-auto px-4">
        <nav className="flex flex-wrap items-center gap-6 min-h-12">
           {/* Category Dropdown */}
@@ -39,7 +39,7 @@ export function NavBar() {
             <button
               ref={btnRef}
               type="button"
-              className="flex items-center gap-2 text-sm text-gray-700 hover:text-primary-600 whitespace-nowrap font-medium"
+              className="flex items-center gap-2 text-sm text-white hover:text-green-200 whitespace-nowrap font-medium"
               aria-haspopup="menu"
               aria-expanded={openCat}
               onClick={() => setOpenCat((v) => !v)}
@@ -132,8 +132,8 @@ export function NavBar() {
             href="/category/trai-cay-tuoi" 
             className={`text-sm whitespace-nowrap transition-colors ${
               pathname === '/category/trai-cay-tuoi' 
-                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
-                : 'text-gray-700 hover:text-primary-600'
+                ? 'text-white font-semibold border-b-2 border-white' 
+                : 'text-green-100 hover:text-white'
             }`}
           >
             Trái cây tươi
@@ -142,8 +142,8 @@ export function NavBar() {
             href="/category/rau-cu" 
             className={`text-sm whitespace-nowrap transition-colors ${
               pathname === '/category/rau-cu' 
-                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
-                : 'text-gray-700 hover:text-primary-600'
+                ? 'text-white font-semibold border-b-2 border-white' 
+                : 'text-green-100 hover:text-white'
             }`}
           >
             Rau củ
@@ -152,8 +152,8 @@ export function NavBar() {
             href="/category/thit-ca" 
             className={`text-sm whitespace-nowrap transition-colors ${
               pathname === '/category/thit-ca' 
-                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
-                : 'text-gray-700 hover:text-primary-600'
+                ? 'text-white font-semibold border-b-2 border-white' 
+                : 'text-green-100 hover:text-white'
             }`}
           >
             Thịt, cá
@@ -162,8 +162,8 @@ export function NavBar() {
             href="/category/gao-mi" 
             className={`text-sm whitespace-nowrap transition-colors ${
               pathname === '/category/gao-mi' 
-                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
-                : 'text-gray-700 hover:text-primary-600'
+                ? 'text-white font-semibold border-b-2 border-white' 
+                : 'text-green-100 hover:text-white'
             }`}
           >
             Gạo, mì
@@ -172,8 +172,8 @@ export function NavBar() {
             href="/category/nuoc-uong" 
             className={`text-sm whitespace-nowrap transition-colors ${
               pathname === '/category/nuoc-uong' 
-                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
-                : 'text-gray-700 hover:text-primary-600'
+                ? 'text-white font-semibold border-b-2 border-white' 
+                : 'text-green-100 hover:text-white'
             }`}
           >
             Nước uống
@@ -182,8 +182,8 @@ export function NavBar() {
             href="/category/banh-keo" 
             className={`text-sm whitespace-nowrap transition-colors ${
               pathname === '/category/banh-keo' 
-                ? 'text-primary-600 font-semibold border-b-2 border-primary-600' 
-                : 'text-gray-700 hover:text-primary-600'
+                ? 'text-white font-semibold border-b-2 border-white' 
+                : 'text-green-100 hover:text-white'
             }`}
           >
             Bánh kẹo
@@ -192,8 +192,8 @@ export function NavBar() {
             href="/category/khuyen-mai-hot" 
             className={`text-sm font-medium whitespace-nowrap transition-colors ${
               pathname === '/category/khuyen-mai-hot' 
-                ? 'text-red-700 font-bold border-b-2 border-red-600' 
-                : 'text-red-600 hover:text-red-700'
+                ? 'text-yellow-300 font-bold border-b-2 border-yellow-300' 
+                : 'text-yellow-200 hover:text-yellow-100'
             }`}
           >
             🔥 Khuyến mãi hot
