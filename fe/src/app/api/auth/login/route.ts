@@ -4,24 +4,27 @@ import bcrypt from 'bcryptjs'
 import { rolePermissions } from '@/shared/auth/permission-map'
 
 interface LoginRequest {
-  emailOrPhone: string
+  email: string
   password: string
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json()
-    const { emailOrPhone, password } = body
+    const { email, password } = body
 
-    if (!emailOrPhone || !password) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email/Phone and password are required' },
+        { 
+          success: false,
+          message: 'Email và mật khẩu là bắt buộc' 
+        },
         { status: 400 }
       )
     }
 
     // Query user from database
-    const emailLower = emailOrPhone.toLowerCase().trim()
+    const emailLower = email.toLowerCase().trim()
     const query = `
       SELECT 
         u.id,
@@ -29,6 +32,7 @@ export async function POST(request: NextRequest) {
         u.password_hash,
         u.full_name,
         u.status,
+        u.role_id,
         r.name as role_name
       FROM users u
       LEFT JOIN roles r ON u.role_id = r.id
@@ -41,12 +45,23 @@ export async function POST(request: NextRequest) {
       password_hash: string | null
       full_name: string | null
       status: string
+      role_id: number
       role_name: string
     }>(query, { email: emailLower })
 
+    console.log('🔍 Login attempt:', {
+      email: emailLower,
+      found: users.length > 0,
+      status: users[0]?.status,
+      hasPasswordHash: !!users[0]?.password_hash
+    })
+
     if (users.length === 0) {
       return NextResponse.json(
-        { error: 'Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại.' },
+        { 
+          success: false,
+          message: 'Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại.' 
+        },
         { status: 401 }
       )
     }
@@ -56,55 +71,53 @@ export async function POST(request: NextRequest) {
     // Check if user is active
     if (user.status !== 'ACTIVE') {
       return NextResponse.json(
-        { error: 'Tài khoản đã bị vô hiệu hóa' },
+        { 
+          success: false,
+          message: 'Tài khoản đã bị vô hiệu hóa' 
+        },
         { status: 403 }
       )
     }
 
     // Verify password
-    if (user.password_hash) {
-      const isValidPassword = await bcrypt.compare(password, user.password_hash)
-      if (!isValidPassword) {
-        return NextResponse.json(
-          { error: 'Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại.' },
-          { status: 401 }
-        )
-      }
-    } else {
-      // For demo accounts without password hash, allow direct password check
-      // TODO: Remove this in production
-      if (password !== 'admin123' && password !== 'warehouse123') {
-        return NextResponse.json(
-          { error: 'Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại.' },
-          { status: 401 }
-        )
-      }
+    if (!user.password_hash) {
+      return NextResponse.json(
+        { 
+          success: false,
+          message: 'Tài khoản chưa được thiết lập mật khẩu' 
+        },
+        { status: 401 }
+      )
     }
 
-    // Map role name to UserRole type
-    const roleMap: Record<string, string> = {
-      ADMIN: 'ADMIN',
-      STORE_MANAGER: 'STORE_MANAGER',
-      WAREHOUSE_MANAGER: 'WAREHOUSE_MANAGER',
-      STORE_STAFF: 'STAFF',
-      WAREHOUSE_STAFF: 'STAFF',
-      CUSTOMER: 'CUSTOMER',
+    const isValidPassword = await bcrypt.compare(password, user.password_hash)
+    
+    console.log('🔐 Password verification:', {
+      email: user.email,
+      passwordMatch: isValidPassword,
+      passwordLength: password.length
+    })
+    
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { 
+          success: false,
+          message: 'Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại.' 
+        },
+        { status: 401 }
+      )
     }
 
-    const role = roleMap[user.role_name] || 'CUSTOMER'
-
-    // Return user data
+    // Return user data in BE format
     return NextResponse.json({
-      user: {
+      success: true,
+      message: 'login successful',
+      data: {
         id: user.id,
-        name: user.full_name || user.email,
-        email: user.email,
-        role,
-        permissions: rolePermissions[role as keyof typeof rolePermissions] || [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      token: `token-${user.id}`, // TODO: Generate JWT token
+        accessToken: `Bearer-${user.id}-${Date.now()}`, // TODO: Generate proper JWT
+        fullName: user.full_name || user.email,
+        roleId: user.role_id,
+      }
     })
   } catch (error) {
     console.error('Login error:', error)
@@ -113,6 +126,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-
+} 
+     

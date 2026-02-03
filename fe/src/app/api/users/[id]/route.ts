@@ -61,28 +61,28 @@ export async function PUT(
 
     // Build update query dynamically
     const updates: string[] = []
-    const params: Record<string, any> = { id: params.id }
+    const queryParams: Record<string, any> = { id: params.id }
 
     if (name) {
       updates.push('full_name = @name')
-      params.name = name
+      queryParams.name = name
     }
     if (email) {
       updates.push('email = @email')
-      params.email = email
+      queryParams.email = email
     }
     if (password) {
       const passwordHash = await bcrypt.hash(password, 10)
       updates.push('password_hash = @password_hash')
-      params.password_hash = passwordHash
+      queryParams.password_hash = passwordHash
     }
     if (roleId) {
       updates.push('role_id = @role_id')
-      params.role_id = roleId
+      queryParams.role_id = roleId
     }
     if (status) {
       updates.push('status = @status')
-      params.status = status
+      queryParams.status = status
     }
 
     if (updates.length === 0) {
@@ -95,7 +95,7 @@ export async function PUT(
     const updateQuery = `
       UPDATE users
       SET ${updates.join(', ')}
-      OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.status, INSERTED.created_at
+      OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.status
       WHERE id = @id
     `
 
@@ -104,8 +104,7 @@ export async function PUT(
       email: string
       full_name: string
       status: string
-      created_at: string
-    }>(updateQuery, params)
+    }>(updateQuery, queryParams)
 
     if (result.length === 0) {
       return NextResponse.json(
@@ -131,7 +130,6 @@ export async function PUT(
       email: updatedUser.email,
       role: roleName,
       status: updatedUser.status,
-      createdAt: updatedUser.created_at,
     })
   } catch (error: any) {
     console.error('Update user error:', error)

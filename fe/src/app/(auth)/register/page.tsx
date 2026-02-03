@@ -18,6 +18,8 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -27,9 +29,10 @@ export default function RegisterPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess(false)
 
     if (!formData.fullName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
       setError('Vui lòng điền đầy đủ tất cả các trường')
@@ -41,15 +44,58 @@ export default function RegisterPage() {
       return
     }
 
+    if (formData.password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự')
+      return
+    }
+
     if (!agreeTerms) {
       setError('Vui lòng đồng ý với Điều khoản dịch vụ')
       return
     }
 
-    console.log('Registration submitted (UI-only):', {
-      ...formData,
-      agreeTerms,
-    })
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Đăng ký thất bại')
+      }
+
+      setSuccess(true)
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+      })
+      setAgreeTerms(false)
+
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 2000)
+    } catch (err: any) {
+      setError(err.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -149,6 +195,15 @@ export default function RegisterPage() {
                 Giao hàng nhanh trong 2 giờ
               </p>
             </div>
+
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-start gap-2">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Đăng ký thành công! Đang chuyển đến trang đăng nhập...</span>
+              </div>
+            )}
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
@@ -259,8 +314,9 @@ export default function RegisterPage() {
                 type="submit" 
                 className="w-full bg-[#0F8A5F] hover:bg-[#0B6B4B] text-white" 
                 size="lg"
+                disabled={isLoading}
               >
-                Tạo tài khoản
+                {isLoading ? 'Đang xử lý...' : 'Tạo tài khoản'}
               </Button>
             </form>
 

@@ -59,11 +59,11 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10)
 
-    // Insert user
+    // Insert user with IdentityDB structure
     const insertQuery = `
-      INSERT INTO users (email, password_hash, full_name, role_id, status)
-      OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.status, INSERTED.created_at
-      VALUES (@email, @password_hash, @name, @role_id, 'ACTIVE')
+      INSERT INTO users (id, email, password_hash, full_name, role_id, status, email_verified)
+      OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.status
+      VALUES (NEWID(), @email, @password_hash, @name, @role_id, 'ACTIVE', 0)
     `
 
     const result = await executeQuery<{
@@ -71,7 +71,6 @@ export async function POST(request: NextRequest) {
       email: string
       full_name: string
       status: string
-      created_at: string
     }>(insertQuery, {
       email,
       password_hash: passwordHash,
@@ -94,7 +93,6 @@ export async function POST(request: NextRequest) {
       email: newUser.email,
       role,
       status: newUser.status,
-      createdAt: newUser.created_at,
     }, { status: 201 })
   } catch (error: any) {
     console.error('Create user error:', error)
