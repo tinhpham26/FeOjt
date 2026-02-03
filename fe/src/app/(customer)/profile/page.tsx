@@ -1,5 +1,21 @@
+'use client'
+
+import { useState, useMemo } from 'react'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
+import { useAuth } from '@/shared/hooks/useAuth'
+
+type TabKey = 'vouchers' | 'orders' | 'profile' | 'addresses' | 'stores'
+
+const storeLocations = [
+  'BHX Quận 1, 123 Nguyễn Huệ',
+  'BHX Quận 3, 456 Lê Văn Sỹ',
+  'BHX Quận 5, 789 Trần Hưng Đạo',
+  'BHX Quận 7, 321 Nguyễn Thị Thập',
+  'BHX Quận 10, 654 Ba Tháng Hai',
+  'BHX Gò Vấp, 987 Quang Trung',
+  'BHX Bình Thạnh, 159 Xô Viết Nghệ Tĩnh',
+]
 
 export default function CustomerProfilePage() {
   const { user } = useAuth()
@@ -84,10 +100,10 @@ export default function CustomerProfilePage() {
         <div className="card">
           <div className="text-center mb-6">
             <div className="w-24 h-24 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-              J
+              {user?.name?.charAt(0).toUpperCase() || 'K'}
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">John Doe</h2>
-            <p className="text-gray-600 text-sm">john.doe@example.com</p>
+            <h2 className="text-xl font-semibold text-gray-900">{user?.name || 'Khách hàng'}</h2>
+            <p className="text-gray-600 text-sm">{user?.email || 'No email'}</p>
           </div>
           <Button fullWidth>Edit Profile</Button>
         </div>
@@ -95,20 +111,11 @@ export default function CustomerProfilePage() {
         <div className="lg:col-span-2 card">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
               <input
                 type="text"
-                value="John"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-              <input
-                type="text"
-                value="Doe"
+                value={user?.name || ''}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                 disabled
               />
@@ -117,25 +124,25 @@ export default function CustomerProfilePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 type="email"
-                value="john.doe@example.com"
+                value={user?.email || ''}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                 disabled
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
               <input
                 type="tel"
-                value="+1 (555) 123-4567"
+                value={user?.phone || 'Chưa cập nhật'}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                 disabled
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Member Since</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ngày tham gia</label>
               <input
                 type="text"
-                value="January 15, 2024"
+                value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                 disabled
               />
