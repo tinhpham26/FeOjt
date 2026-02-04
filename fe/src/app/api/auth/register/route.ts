@@ -83,11 +83,11 @@ export async function POST(request: NextRequest) {
       hashPreview: passwordHash.substring(0, 20) + '...'
     })
 
-    // Insert new user with Customer role (role_id = 6)
+    // Insert new user with Customer role (role_id = 5)
     const insertQuery = `
       INSERT INTO users (id, email, password_hash, full_name, phone, role_id, status, email_verified)
       OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.phone
-      VALUES (NEWID(), @email, @passwordHash, @fullName, @phone, 6, 'ACTIVE', 0)
+      VALUES (NEWID(), @email, @passwordHash, @fullName, @phone, 5, 'ACTIVE', 0)
     `
 
     const result = await executeQuery<{

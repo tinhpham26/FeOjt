@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/ui/Button'
@@ -8,7 +8,8 @@ import { Input } from '@/shared/ui/Input'
 import { Checkbox } from '@/shared/ui/Checkbox'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { rolePermissions } from '@/shared/auth/permission-map'
-import type { User } from '@/shared/types'
+import { authService } from '@/services/auth.service'
+import type { User, UserRole } from '@/shared/types'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,132 +20,89 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [hasError, setHasError] = useState(false)
 
-  // Luôn hiển thị trang đăng nhập khi người dùng chọn "Đăng nhập"
-  // (Không tự động chuyển hướng sang trang khách hàng nếu đã đăng nhập)
+  // Prefetch routes để giảm độ trễ khi chuyển trang
+  useEffect(() => {
+    router.prefetch('/admin/dashboard')
+    router.prefetch('/ops')
+    router.prefetch('/customer')
+  }, [router])
+
+  // Map roleId sang role name
+  const getRoleFromRoleId = useCallback((roleId: number): UserRole => {
+    switch (roleId) {
+      case 1: return 'ADMIN'
+      case 2: return 'STORE_MANAGER'
+      case 3: return 'WAREHOUSE_MANAGER'
+      case 4: return 'STAFF'
+      case 5: return 'CUSTOMER'
+      default: return 'CUSTOMER'
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setHasError(false)
     setLoading(true)
 
     if (!emailOrPhone || !password) {
       setError('Vui lòng nhập đầy đủ thông tin')
+      setHasError(true)
       setLoading(false)
       return
     }
 
-    const emailLower = emailOrPhone.toLowerCase().trim()
+    try {
+      // Gọi backend IAM microservice thông qua authService
+      const [data] = await Promise.all([
+        authService.login({
+          email: emailOrPhone.trim(),
+          password: password,
+        })
+      ])
 
-    // 1) Kiểm tra các user demo được tạo từ trang Admin (/users) lưu trong localStorage
-    if (typeof window !== 'undefined') {
-      const raw = window.localStorage.getItem('demo-users')
-      if (raw) {
-        try {
-          const users = JSON.parse(raw) as Array<{
-            email: string
-            role: User['role']
-            password?: string
-          }>
-          const found = users.find(
-            (u) => u.email.toLowerCase() === emailLower && (!u.password || u.password === password)
-          )
+      // Backend trả về: { success, message, data: { accessToken, email, fullName, roleId } }
+      const responseData = data.data || data
+      const token = responseData.accessToken || data.accessToken || data.token
 
-          if (found) {
-            const role = found.role
-            const mockUser: User = {
-              id: `demo-${role.toLowerCase()}`,
-              name: emailOrPhone,
-              email: emailOrPhone,
-              role,
-              permissions: rolePermissions[role as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
-
-            login(mockUser, `mock-token-${role.toLowerCase()}`)
-
-            // Điều hướng theo role
-            if (role === 'ADMIN') {
-              router.push('/admin/dashboard')
-            } else if (role === 'STORE_MANAGER' || role === 'WAREHOUSE_MANAGER' || role === 'STAFF') {
-              router.push('/ops')
-            } else {
-              router.push('/customer')
-            }
-
-            setLoading(false)
-            return
-          }
-        } catch {
-          // ignore parse error
-        }
-      }
-    }
-
-    // 2) Demo accounts cứng cho các vai trò hệ thống (chỉ dùng mock, chưa gọi API)
-    if (emailLower === 'admin@bhx.local' && password === 'admin123') {
-      const mockAdmin: User = {
-        id: 'demo-admin',
-        name: 'Quản trị viên',
-        email: 'admin@bhx.local',
-        role: 'ADMIN',
-        permissions: rolePermissions.ADMIN,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      if (!token) {
+        throw new Error('Không nhận được token từ server')
       }
 
-      login(mockAdmin, 'mock-token-admin')
-      router.push('/admin/dashboard')
+      const userRole = getRoleFromRoleId(responseData.roleId || 5)
+      const userEmail = responseData.email || emailOrPhone.trim()
+
+      // Tạo user object và login song song
+      const user: User = {
+        id: responseData.userId || responseData.id || userEmail,
+        name: responseData.fullName || responseData.name || 'User',
+        email: userEmail,
+        role: userRole,
+        permissions: rolePermissions[userRole as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
+        createdAt: responseData.createdAt || new Date().toISOString(),
+        updatedAt: responseData.updatedAt || new Date().toISOString(),
+      }
+
+      // Update auth state
+      login(user, token)
+
+      // Route based on user role (router.push with replace để tránh back)
+      if (userRole === 'ADMIN') {
+        router.replace('/admin/dashboard')
+      } else if (userRole === 'STORE_MANAGER' || userRole === 'WAREHOUSE_MANAGER' || userRole === 'STAFF') {
+        router.replace('/ops')
+      } else {
+        router.replace('/customer')
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+      setError(errorMessage)
+      setHasError(true)
+    } finally {
       setLoading(false)
-      return
     }
-
-    // Warehouse Manager accounts
-    if (
-      (emailLower === 'warehouse@bhx.local' || emailLower === 'warehouse2@bhx.local') &&
-      password === 'warehouse123'
-    ) {
-      const mockWarehouse: User = {
-        id: 'demo-warehouse',
-        name: 'Warehouse Manager',
-        email: emailLower,
-        role: 'WAREHOUSE_MANAGER',
-        permissions: rolePermissions.WAREHOUSE_MANAGER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      login(mockWarehouse, 'mock-token-warehouse')
-      router.push('/ops')
-      setLoading(false)
-      return
-    }
-
-    // TODO: Replace with actual API call
-    // Example: const response = await authService.login({ emailOrPhone, password })
-    
-    // Mock login for customer
-    setTimeout(() => {
-      const mockUser: User = {
-        id: 'demo-customer',
-        name: 'Khách hàng',
-        email: emailOrPhone,
-        role: 'CUSTOMER',
-        permissions: rolePermissions.CUSTOMER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      login(mockUser, 'mock-token-customer')
-      router.push('/customer')
-      setLoading(false)
-    }, 800)
-  }
-
-  const handleOTPLogin = () => {
-    // TODO: Implement OTP login flow
-    alert('Tính năng đăng nhập bằng OTP đang được phát triển')
   }
 
   const goBackToHomepage = () => {
@@ -302,25 +260,49 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
+              {/* Hidden inputs to trick browser */}
+              <input type="text" name="fakeusername" style={{ display: 'none' }} />
+              <input type="password" name="fakepassword" style={{ display: 'none' }} />
+              
               <Input
                 label="Số điện thoại hoặc Email"
                 type="text"
+                name="email"
                 placeholder="0901234567 hoặc email@example.com"
                 value={emailOrPhone}
-                onChange={(e) => setEmailOrPhone(e.target.value)}
+                onChange={(e) => {
+                  setEmailOrPhone(e.target.value)
+                  if (hasError) {
+                    setError('')
+                    setHasError(false)
+                  }
+                }}
                 required
-                className="focus:border-[#0F8A5F] focus:ring-[#0F8A5F]"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                className={`${hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#0F8A5F] focus:ring-[#0F8A5F]'}`}
               />
 
               <Input
                 label="Mật khẩu"
                 type="password"
+                name="password"
                 placeholder="Nhập mật khẩu"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (hasError) {
+                    setError('')
+                    setHasError(false)
+                  }
+                }}
                 required
-                className="focus:border-[#0F8A5F] focus:ring-[#0F8A5F]"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                className={`${hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#0F8A5F] focus:ring-[#0F8A5F]'}`}
               />
 
               <div className="flex items-center justify-between">
