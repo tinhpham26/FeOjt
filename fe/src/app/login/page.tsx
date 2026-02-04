@@ -23,6 +23,24 @@ export default function LoginPage() {
   // Luôn hiển thị trang đăng nhập khi người dùng chọn "Đăng nhập"
   // (Không tự động chuyển hướng sang trang khách hàng nếu đã đăng nhập)
 
+  // Helper function to map roleId from database to role string
+  const mapRoleIdToRole = (roleId: number): User['role'] => {
+    switch (roleId) {
+      case 1:
+        return 'ADMIN'
+      case 2:
+        return 'STORE_MANAGER'
+      case 3:
+        return 'WAREHOUSE_MANAGER'
+      case 4:
+        return 'STAFF'
+      case 5:
+        return 'CUSTOMER'
+      default:
+        return 'CUSTOMER' // Default to customer if unknown role
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -34,112 +52,59 @@ export default function LoginPage() {
       return
     }
 
-    const emailLower = emailOrPhone.toLowerCase().trim()
+    try {
+      // Call real API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailOrPhone.trim(),
+          password: password,
+        }),
+      })
 
-    // 1) Kiểm tra các user demo được tạo từ trang Admin (/users) lưu trong localStorage
-    if (typeof window !== 'undefined') {
-      const raw = window.localStorage.getItem('demo-users')
-      if (raw) {
-        try {
-          const users = JSON.parse(raw) as Array<{
-            email: string
-            role: User['role']
-            password?: string
-          }>
-          const found = users.find(
-            (u) => u.email.toLowerCase() === emailLower && (!u.password || u.password === password)
-          )
+      const result = await response.json()
 
-          if (found) {
-            const role = found.role
-            const mockUser: User = {
-              id: `demo-${role.toLowerCase()}`,
-              name: emailOrPhone,
-              email: emailOrPhone,
-              role,
-              permissions: rolePermissions[role as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
-
-            login(mockUser, `mock-token-${role.toLowerCase()}`)
-
-            // Điều hướng theo role
-            if (role === 'ADMIN') {
-              router.push('/admin/dashboard')
-            } else if (role === 'STORE_MANAGER' || role === 'WAREHOUSE_MANAGER' || role === 'STAFF') {
-              router.push('/ops')
-            } else {
-              router.push('/customer')
-            }
-
-            setLoading(false)
-            return
-          }
-        } catch {
-          // ignore parse error
-        }
+      if (!response.ok || !result.success) {
+        setError(result.message || 'Đăng nhập thất bại')
+        setLoading(false)
+        return
       }
-    }
 
-    // 2) Demo accounts cứng cho các vai trò hệ thống (chỉ dùng mock, chưa gọi API)
-    if (emailLower === 'admin@bhx.local' && password === 'admin123') {
-      const mockAdmin: User = {
-        id: 'demo-admin',
-        name: 'Quản trị viên',
-        email: 'admin@bhx.local',
-        role: 'ADMIN',
-        permissions: rolePermissions.ADMIN,
+      // Map roleId to role string
+      const role = mapRoleIdToRole(result.data.roleId)
+      
+      // Create user object
+      const user: User = {
+        id: result.data.id,
+        name: result.data.fullName,
+        email: emailOrPhone.trim(),
+        role: role,
+        permissions: rolePermissions[role as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
 
-      login(mockAdmin, 'mock-token-admin')
-      router.push('/admin/dashboard')
-      setLoading(false)
-      return
-    }
+      // Login with real data
+      login(user, result.data.accessToken)
 
-    // Warehouse Manager accounts
-    if (
-      (emailLower === 'warehouse@bhx.local' || emailLower === 'warehouse2@bhx.local') &&
-      password === 'warehouse123'
-    ) {
-      const mockWarehouse: User = {
-        id: 'demo-warehouse',
-        name: 'Warehouse Manager',
-        email: emailLower,
-        role: 'WAREHOUSE_MANAGER',
-        permissions: rolePermissions.WAREHOUSE_MANAGER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      // Redirect based on role
+      if (role === 'ADMIN') {
+        router.push('/admin/dashboard')
+      } else if (role === 'STORE_MANAGER' || role === 'WAREHOUSE_MANAGER' || role === 'STAFF') {
+        router.push('/ops')
+      } else {
+        router.push('/customer')
       }
 
-      login(mockWarehouse, 'mock-token-warehouse')
-      router.push('/ops')
       setLoading(false)
-      return
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.')
+      setLoading(false)
     }
-
-    // TODO: Replace with actual API call
-    // Example: const response = await authService.login({ emailOrPhone, password })
-    
-    // Mock login for customer
-    setTimeout(() => {
-      const mockUser: User = {
-        id: 'demo-customer',
-        name: 'Khách hàng',
-        email: emailOrPhone,
-        role: 'CUSTOMER',
-        permissions: rolePermissions.CUSTOMER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      login(mockUser, 'mock-token-customer')
-      router.push('/customer')
-      setLoading(false)
-    }, 800)
   }
 
   const handleOTPLogin = () => {

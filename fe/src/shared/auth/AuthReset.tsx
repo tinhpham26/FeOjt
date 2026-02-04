@@ -6,27 +6,22 @@ import { useAuthStore } from '@/store/auth.store'
 /**
  * AuthReset Component
  * 
- * Forces a hard logout on every app boot/reload.
- * Ensures the app always starts in unauthenticated state.
+ * DISABLED: No longer forces logout on app boot.
+ * Authentication is now persisted in localStorage via Zustand persist middleware.
  * 
- * - Clears all auth tokens
- * - Clears localStorage/sessionStorage
- * - Clears auth cookies
- * - Resets Zustand auth state
+ * This component is kept for backward compatibility but does nothing.
+ * Users will remain logged in across page refreshes and navigation.
+ * 
+ * To manually clear auth, use the logout() function from useAuthStore.
  */
 export function AuthReset() {
-  const resetAuth = useAuthStore((state) => state.resetAuth)
-
+  // Component is now inactive - authentication persists across reloads
+  
   useEffect(() => {
-    // Run only once on mount (app boot)
-    resetAuth()
-    
-    // Optional: Log for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔒 Auth reset: User logged out on app boot')
+      console.log('🔓 Auth persistence enabled - users remain logged in')
     }
-  }, [resetAuth])
+  }, [])
 
-  // This component renders nothing
   return null
 }
