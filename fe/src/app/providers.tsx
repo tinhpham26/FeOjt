@@ -1,7 +1,8 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
+import { useAuthStore } from '@/store/auth.store'
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -19,6 +20,20 @@ export function Providers({ children }: { children: ReactNode }) {
         },
       })
   )
+
+  // Hydrate auth state from localStorage on mount
+  const setHydrated = useAuthStore((state) => state.setHydrated)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setHydrated()
+    setMounted(true)
+  }, [setHydrated])
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
