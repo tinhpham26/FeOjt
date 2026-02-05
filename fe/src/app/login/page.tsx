@@ -41,24 +41,6 @@ export default function LoginPage() {
     }
   }, [])
 
-  // Helper function to map roleId from database to role string
-  const mapRoleIdToRole = (roleId: number): User['role'] => {
-    switch (roleId) {
-      case 1:
-        return 'ADMIN'
-      case 2:
-        return 'STORE_MANAGER'
-      case 3:
-        return 'WAREHOUSE_MANAGER'
-      case 4:
-        return 'STAFF'
-      case 5:
-        return 'CUSTOMER'
-      default:
-        return 'CUSTOMER' // Default to customer if unknown role
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -74,12 +56,10 @@ export default function LoginPage() {
 
     try {
       // Gọi backend IAM microservice thông qua authService
-      const [data] = await Promise.all([
-        authService.login({
-          email: emailOrPhone.trim(),
-          password: password,
-        })
-      ])
+      const data = await authService.login({
+        email: emailOrPhone.trim(),
+        password: password,
+      })
 
       // Backend trả về: { success, message, data: { accessToken, email, fullName, roleId } }
       const responseData = data.data || data
@@ -115,13 +95,12 @@ export default function LoginPage() {
         router.replace('/customer')
       }
     } catch (err: any) {
+      console.error('Login error:', err)
       const errorMessage = err.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.'
       setError(errorMessage)
       setHasError(true)
-    } finally {
       setLoading(false)
     }
-
   }
 
   const goBackToHomepage = () => {

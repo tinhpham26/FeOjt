@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/shared/hooks/useAuth'
-import type { UserRole } from '@/shared/types'
 
 interface SearchSuggestion {
   id: string
@@ -23,63 +22,6 @@ interface CartItem {
   price: number
   quantity: number
 }
-
-interface MenuItem {
-  label: string
-  href: string
-  icon?: React.ReactNode
-  badge?: string
-  roles: UserRole[]
-}
-
-const MENU_ITEMS: MenuItem[] = [
-  {
-    label: 'Trang chủ',
-    href: '/customer',
-    roles: ['CUSTOMER', 'STAFF', 'STORE_MANAGER', 'WAREHOUSE_MANAGER', 'ADMIN']
-  },
-  {
-    label: 'Khuyến mãi',
-    href: '/customer/promotions',
-    badge: 'HOT',
-    roles: ['CUSTOMER']
-  },
-  {
-    label: 'Sản phẩm',
-    href: '/admin/catalog/products',
-    roles: ['ADMIN', 'STORE_MANAGER']
-  },
-  {
-    label: 'Đơn hàng',
-    href: '/customer/orders',
-    roles: ['CUSTOMER', 'STAFF', 'STORE_MANAGER', 'ADMIN']
-  },
-  {
-    label: 'Kho hàng',
-    href: '/ops/inventory',
-    roles: ['STAFF', 'WAREHOUSE_MANAGER', 'ADMIN']
-  },
-  {
-    label: 'Giao hàng',
-    href: '/ops/delivery',
-    roles: ['STAFF', 'WAREHOUSE_MANAGER', 'ADMIN']
-  },
-  {
-    label: 'Loyalty',
-    href: '/customer/loyalty',
-    roles: ['CUSTOMER', 'ADMIN']
-  },
-  {
-    label: 'Báo cáo',
-    href: '/admin/reports',
-    roles: ['STORE_MANAGER', 'ADMIN']
-  },
-  {
-    label: 'Quản lý',
-    href: '/admin/dashboard',
-    roles: ['ADMIN']
-  }
-]
 
 const MOCK_SUGGESTIONS: SearchSuggestion[] = [
   { id: '1', type: 'product', text: 'Cà chua bi', category: 'Rau củ quả', image: '/products/tomato.jpg', price: 25000 },
@@ -113,12 +55,14 @@ export function Header() {
   const [recentSearches, setRecentSearches] = useState<string[]>(['Rau củ', 'Thịt heo', 'Trái cây'])
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [showSupportMenu, setShowSupportMenu] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   
   // Refs
   const searchRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const cartRef = useRef<HTMLDivElement>(null)
+  const supportRef = useRef<HTMLDivElement>(null)
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Scroll detection
@@ -214,11 +158,6 @@ export function Header() {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
-  // Filter menu items by role
-  const visibleMenuItems = MENU_ITEMS.filter(item => 
-    user ? item.roles.includes(user.role) : item.roles.includes('CUSTOMER')
-  )
-
   // Fix hydration mismatch
   useEffect(() => {
     if (isAuthenticated && !user) {
@@ -236,16 +175,16 @@ export function Header() {
         ? 'shadow-xl' 
         : 'shadow-lg'
     }`}>
-      {/* Main header - Red background */}
-      <div className="bg-red-600">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 md:gap-6">
+      {/* Main header - Green background */}
+      <div className="bg-[#0aa84f] h-[72px] flex items-center">
+        <div className="max-w-[1600px] mx-auto px-4 w-full">
+          <div className="flex items-center gap-[30px]">
             {/* Logo */}
             <Link href="/customer" className="flex-shrink-0 group">
-              <div className="flex items-center gap-2">
-                <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden bg-white group-hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3">
+                <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-white group-hover:scale-105 transition-all duration-300">
                   <Image
-                    src="/logo.jpg"
+                    src="/logocty.png"
                     alt="Bách Hóa XANH"
                     width={48}
                     height={48}
@@ -253,15 +192,14 @@ export function Header() {
                     priority
                   />
                 </div>
-                <div className="hidden sm:block">
-                  <div className="font-bold text-white text-xl md:text-2xl leading-tight tracking-tight">Bách Hóa</div>
-                  <div className="font-bold text-white text-xl md:text-2xl leading-tight tracking-tight">XANH</div>
+                <div className="hidden md:block">
+                  <div className="font-bold text-white text-2xl leading-tight tracking-tight whitespace-nowrap">Bách Hóa XANH</div>
                 </div>
               </div>
             </Link>
 
             {/* Search bar */}
-            <div ref={searchRef} className="flex-1 relative max-w-3xl">
+            <div ref={searchRef} className="flex-1 relative max-w-[500px]">
               <form onSubmit={handleSearchSubmit}>
                 <div className="relative">
                   <input
@@ -270,11 +208,11 @@ export function Header() {
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
                     onFocus={() => setShowSuggestions(true)}
-                    className="w-full pl-4 pr-12 py-3 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200 text-gray-700"
+                    className="w-full h-[40px] pl-4 pr-12 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200 text-gray-700 text-sm"
                   />
                   <button
                     type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-600 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-green-600 transition-colors"
                     aria-label="Tìm kiếm"
                   >
                     {isSearching ? (
@@ -415,30 +353,31 @@ export function Header() {
               )}
             </div>
 
-            {/* Right section - WinMart style */}
-            <div className="flex items-center gap-3 md:gap-4">
+            {/* Right section */}
+            <div className="flex items-center gap-[30px] ml-auto">
+
               {/* Giao Hàng button */}
-              <button className="hidden md:flex items-center gap-2 px-4 py-2 bg-white rounded-full text-red-600 hover:bg-red-50 transition-colors font-medium">
+              <button className="hidden lg:flex items-center gap-2 h-[40px] px-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-sm">Giao Hàng</span>
+                <span className="text-sm font-medium">Giao Hàng</span>
               </button>
 
               {/* Cart - Giỏ hàng */}
               <div ref={cartRef} className="relative">
                 <button
                   onClick={() => setShowCartPreview(!showCartPreview)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                  className="flex items-center gap-2 h-[40px] px-4 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                   aria-label="Giỏ hàng"
                 >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="hidden md:inline text-white font-medium text-sm">Giỏ hàng ({cartCount})</span>
+                  <span className="hidden lg:inline text-white font-medium text-sm">Giỏ hàng ({cartCount})</span>
                   {cartCount > 0 && (
-                    <span className="md:hidden absolute -top-1 -right-1 min-w-[20px] h-5 bg-yellow-400 text-red-600 text-xs rounded-full flex items-center justify-center font-bold px-1.5">
+                    <span className="md:hidden absolute -top-1 -right-1 min-w-[20px] h-5 bg-yellow-400 text-green-600 text-xs rounded-full flex items-center justify-center font-bold px-1.5">
                       {cartCount}
                     </span>
                   )}
@@ -447,10 +386,10 @@ export function Header() {
                 {/* Cart preview dropdown */}
                 {showCartPreview && (
                   <div className="absolute right-0 top-full mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-red-50 to-pink-50">
+                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
                       <div className="flex items-center justify-between">
                         <h3 className="font-bold text-gray-900">Giỏ hàng của bạn</h3>
-                        <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                        <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
                           {cartCount} sản phẩm
                         </span>
                       </div>
@@ -492,11 +431,11 @@ export function Header() {
                           <div className="p-4 bg-gray-50 border-t border-gray-200">
                             <div className="flex items-center justify-between mb-3">
                               <span className="font-semibold text-gray-700">Tổng cộng:</span>
-                              <span className="font-bold text-red-600 text-lg">{formatPrice(cartTotal)}</span>
+                              <span className="font-bold text-green-600 text-lg">{formatPrice(cartTotal)}</span>
                             </div>
                             <Link
                               href="/customer/cart"
-                              className="w-full py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-98"
+                              className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-98"
                             >
                               <span>Xem giỏ hàng</span>
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -513,7 +452,7 @@ export function Header() {
                           <p className="text-gray-500 font-medium">Giỏ hàng trống</p>
                           <Link
                             href="/customer"
-                            className="inline-block mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
                           >
                             Tiếp tục mua sắm
                           </Link>
@@ -529,20 +468,20 @@ export function Header() {
                 <div ref={userMenuRef} className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                    className="flex items-center gap-2 h-[40px] px-4 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                   >
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span className="hidden md:inline text-white font-medium text-sm">Hội viên</span>
+                    <span className="hidden lg:inline text-white font-medium text-sm">Tài khoản</span>
                   </button>
 
                   {/* User dropdown menu */}
                   {showUserMenu && (
                     <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-red-50 to-pink-50">
+                      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
                             {user.email.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -559,7 +498,7 @@ export function Header() {
                       <div className="py-2">
                         <Link
                           href="/customer/profile"
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700 hover:text-red-600"
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700 hover:text-green-600"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -568,7 +507,7 @@ export function Header() {
                         </Link>
                         <Link
                           href="/customer/orders"
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700 hover:text-red-600"
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700 hover:text-green-600"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -577,7 +516,7 @@ export function Header() {
                         </Link>
                         <Link
                           href="/customer/loyalty"
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700 hover:text-red-600"
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700 hover:text-green-600"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -588,7 +527,7 @@ export function Header() {
                       <div className="border-t border-gray-100 py-2">
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-red-600 font-medium"
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-green-600 font-medium"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -602,12 +541,12 @@ export function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                  className="flex items-center gap-2 h-[40px] px-6 bg-white hover:bg-white/90 rounded-full transition-colors text-green-600 font-semibold text-sm"
                 >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                   </svg>
-                  <span className="hidden md:inline text-white font-medium text-sm">Hội viên</span>
+                  <span>Đăng nhập</span>
                 </Link>
               )}
             </div>
@@ -619,62 +558,242 @@ export function Header() {
       <div className="bg-gray-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-6 py-2.5">
-            {/* Danh mục sản phẩm button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex items-center gap-2 text-gray-700 hover:text-red-600 font-medium transition-colors"
+            {/* Danh mục sản phẩm button with hover dropdown */}
+            <div 
+              className="relative"
+              onMouseEnter={() => setIsMobileMenuOpen(true)}
+              onMouseLeave={() => setIsMobileMenuOpen(false)}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-              <span className="text-sm">Danh mục sản phẩm</span>
-            </button>
+              <button
+                className="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span className="text-sm">Danh mục sản phẩm</span>
+              </button>
+
+              {/* Dropdown menu - WinMart style */}
+              {isMobileMenuOpen && (
+                <div className="absolute top-full left-0 mt-0 w-[280px] bg-white border border-gray-200 shadow-2xl z-50 rounded-b-lg overflow-hidden">
+                  <div className="py-1">
+                    <Link
+                      href="/category/gia-sieu-re"
+                      className="flex items-center justify-between px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors"
+                    >
+                      <span>Giá Siêu Rẻ</span>
+                    </Link>
+                    <Link
+                      href="/category/sua-cac-loai"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Sữa các loại</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/rau-cu-trai-cay"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Rau - Củ - Trái Cây</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/hoa-pham-tay-rua"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Hóa Phẩm - Tẩy rửa</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/cham-soc-ca-nhan"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Chăm Sóc Cá Nhân</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/thit-hai-san-tuoi"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Thịt - Hải Sản Tươi</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/banh-keo"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Bánh Kẹo</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/do-uong-co-con"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Đồ uống có cồn</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/do-uong-giai-khat"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Đồ Uống - Giải Khát</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/mi-thuc-pham-an-lien"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Mì - Thực Phẩm Ăn Liền</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/thuc-pham-kho"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Thực Phẩm Khô</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/thuc-pham-che-bien"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Thực Phẩm Chế Biến</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/gia-vi"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Gia vị</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/trung-dau-hat"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Trứng - Dầu Hạt</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/cham-soc-be"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Chăm Sóc Bé</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/do-dung-gia-dinh"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Đồ Dùng Gia Đình</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/dien-gia-dung"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Điện Gia Dụng</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/van-phong-pham-do-choi"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
+                    >
+                      <span>Văn Phòng Phẩm - Đồ Chơi</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/category/dieu-kien-khuyen-mai"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-blue-600 font-medium transition-colors border-t border-gray-200"
+                    >
+                      <span>Điều kiện khuyến mãi</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Tư vấn mua hàng */}
-            <Link 
-              href="/customer/support"
-              className="flex items-center gap-2 text-gray-700 hover:text-red-600 font-medium transition-colors"
+            <div
+              ref={supportRef}
+              className="relative"
+              onMouseEnter={() => setShowSupportMenu(true)}
+              onMouseLeave={() => setShowSupportMenu(false)}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <span className="text-sm">Tư vấn mua hàng</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+              <button
+                className="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span className="text-sm">Tư vấn mua hàng</span>
+              </button>
 
-      {/* Mobile category menu dropdown */}
-      {isMobileMenuOpen && (
-        <div className="bg-white border-b border-gray-200 shadow-lg animate-in slide-in-from-top duration-200">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {visibleMenuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex flex-col items-center gap-2 p-4 bg-gray-50 hover:bg-red-50 rounded-lg transition-all duration-200 group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-red-100 group-hover:bg-red-200 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
+              {/* Support dropdown */}
+              {showSupportMenu && (
+                <div className="absolute top-full left-0 mt-0 w-[280px] bg-white border border-gray-200 shadow-2xl z-50 rounded-b-lg overflow-hidden">
+                  <div className="py-1">
+                    <div className="px-4 py-3 bg-green-600 text-white font-semibold">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span>Tư vấn mua hàng</span>
+                      </div>
+                    </div>
+                    <a
+                      href="tel:02471066866"
+                      className="flex items-center gap-3 px-4 py-4 hover:bg-gray-50 text-gray-800 transition-colors border-t border-gray-200"
+                    >
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <div>
+                        <div className="text-xs text-gray-500">Mua online:</div>
+                        <div className="font-semibold text-green-600">024 71066866</div>
+                      </div>
+                    </a>
                   </div>
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-red-600 text-center">
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full uppercase">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+      </div>
     </header>
   )
 }

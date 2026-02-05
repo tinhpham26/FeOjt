@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
-import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
+import { Header } from '@/shared/ui/Header'
 import { HeroBanner } from '@/features/promotions/components/HeroBanner'
 import { CategoryGrid } from '@/features/catalog/components/CategoryGrid'
 import { PromoBlocks } from '@/features/catalog/components/PromoBlocks'
@@ -12,7 +12,7 @@ export default function CustomerDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <CustomerHeader />
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 space-y-8">
