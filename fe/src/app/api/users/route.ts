@@ -10,12 +10,15 @@ export async function GET(request: NextRequest) {
         u.id,
         u.email,
         u.full_name as name,
+        u.phone,
         u.status,
         r.name as role,
-        u.created_at as createdAt
+        u.role_id,
+        GETDATE() as createdAt
       FROM users u
       LEFT JOIN roles r ON u.role_id = r.id
-      ORDER BY u.created_at DESC
+      WHERE u.role_id != 1
+      ORDER BY u.id DESC
     `
 
     const users = await executeQuery(query)

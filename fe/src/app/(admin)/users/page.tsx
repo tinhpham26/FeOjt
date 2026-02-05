@@ -8,7 +8,7 @@ import { Input } from '@/shared/ui/Input'
 import { DataTable } from '@/shared/ui/DataTable'
 import Modal from '@/shared/ui/Modal'
 
-type UserStatus = 'ACTIVE' | 'INACTIVE'
+type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
 
 interface User {
   id: string
@@ -30,26 +30,49 @@ export default function UsersPage() {
   const [passwordError, setPasswordError] = useState('')
   const [role, setRole] = useState('STAFF')
   const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [roles, setRoles] = useState<Array<{ id: number; name: string }>>([])
 
-  // Load users demo từ localStorage khi mở trang
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const raw = window.localStorage.getItem('demo-users')
-    if (!raw) return
+  // Load users từ database
+  const loadUsers = async () => {
     try {
-      const parsed = JSON.parse(raw) as User[]
-      setUsers(parsed)
-    } catch {
-      // ignore parse error
+      setLoading(true)
+      const response = await fetch('/api/users')
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data)
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  // Load roles từ database
+  const loadRoles = async () => {
+    try {
+      const response = await fetch('/api/roles')
+      if (response.ok) {
+        const data = await response.json()
+        setRoles(data)
+        if (data.length > 0) {
+          setRole(data[0].name)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load roles:', error)
+    }
+  }
+
+  useEffect(() => {
+    loadUsers()
+    loadRoles()
   }, [])
 
-  // Helper: sync state -> localStorage
+  // Helper: sync state
   const syncUsers = (next: User[]) => {
     setUsers(next)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('demo-users', JSON.stringify(next))
-    }
   }
 
   // Validate password
@@ -82,7 +105,7 @@ export default function UsersPage() {
     setEmail('')
     setPassword('')
     setPasswordError('')
-    setRole('STAFF')
+    setRole(roles.length > 0 ? roles[0].name : 'STAFF')
     setIsModalOpen(true)
   }
 
@@ -106,17 +129,53 @@ export default function UsersPage() {
     setIsModalOpen(true)
   }
 
-  const handleStatusChange = (id: string, status: UserStatus) => {
-    const next = users.map((u) => (u.id === id ? { ...u, status } : u))
-    syncUsers(next)
+  const handleStatusChange = async (id: string, status: UserStatus) => {
+    try {
+      const user = users.find((u) => u.id === id)
+      if (!user) return
+
+      console.log('Changing status:', { id, status, user })
+
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+
+      if (response.ok) {
+        await loadUsers()
+        console.log('Status updated successfully')
+      } else {
+        const error = await response.json()
+        console.error('Status update failed:', error)
+        alert('Không thể cập nhật status: ' + (error.error || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Update status error:', error)
+      alert('Có lỗi xảy ra khi cập nhật status')
+    }
   }
 
-  const handleDeleteUser = (id: string) => {
-    const next = users.filter((u) => u.id !== id)
-    syncUsers(next)
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm('Bạn có chắc muốn xóa user này?')) return
+
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        await loadUsers()
+      } else {
+        alert('Xóa user thất bại')
+      }
+    } catch (error) {
+      console.error('Delete user error:', error)
+      alert('Có lỗi xảy ra')
+    }
   }
 
-  const handleSubmitUser = (e: React.FormEvent) => {
+  const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Validate password
@@ -137,37 +196,45 @@ export default function UsersPage() {
 
     setPasswordError('')
 
-    if (mode === 'create') {
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        name,
-        email,
-        role,
-        status: 'ACTIVE',
-        password,
-        createdAt: new Date().toISOString(),
+    try {
+      if (mode === 'create') {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, role }),
+        })
+
+        if (response.ok) {
+          await loadUsers() // Reload users từ DB
+        } else {
+          const error = await response.json()
+          alert(error.error || 'Tạo user thất bại')
+          return
+        }
+      } else if (mode === 'edit' && editingId) {
+        const payload: any = { name, email, role }
+        if (password) payload.password = password
+
+        const response = await fetch(`/api/users/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        if (response.ok) {
+          await loadUsers() // Reload users từ DB
+        } else {
+          const error = await response.json()
+          alert(error.error || 'Cập nhật user thất bại')
+          return
+        }
       }
 
-      syncUsers([...users, newUser])
-    } else if (mode === 'edit' && editingId) {
-      const next = users.map((u) =>
-        u.id === editingId
-          ? {
-              ...u,
-              name,
-              email,
-              role,
-              ...(password ? { password } : {}),
-            }
-          : u
-      )
-      syncUsers(next)
+      handleCloseCreate()
+    } catch (error) {
+      console.error('Submit user error:', error)
+      alert('Có lỗi xảy ra')
     }
-
-    // TODO: tích hợp API tạo / update user, truyền password nếu có:
-    // const payload = { name, email, role, ...(password ? { password } : {}) }
-
-    handleCloseCreate()
   }
 
   const createUserButton = (
@@ -187,7 +254,11 @@ export default function UsersPage() {
       />
 
       <div className="card">
-        {users.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="text-gray-500">Đang tải...</div>
+          </div>
+        ) : users.length === 0 ? (
           <EmptyState
             title="No Users"
             description="Create your first user account"
@@ -210,10 +281,14 @@ export default function UsersPage() {
                 label: 'Role',
                 render: (value) => {
                   const roleLabels: Record<string, string> = {
+                    ADMIN: 'Admin',
                     STORE_MANAGER: 'Store Manager',
                     WAREHOUSE_MANAGER: 'Warehouse Manager',
                     STAFF: 'Staff',
                     CUSTOMER: 'Customer',
+                    // Backend role names
+                    'Store Manager': 'Store Manager',
+                    'Warehouse Manager': 'Warehouse Manager',
                   }
                   return (
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
@@ -227,17 +302,19 @@ export default function UsersPage() {
                 label: 'Status',
                 render: (value, item) => (
                   <select
-                    className="px-2 py-1 text-xs border border-gray-300 rounded-md bg-white"
+                    className="px-2 py-1 text-xs border border-gray-300 rounded-md bg-white cursor-pointer hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={value as string}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      e.stopPropagation()
                       handleStatusChange(
                         (item as User).id,
                         e.target.value as UserStatus
                       )
-                    }
+                    }}
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
+                    <option value="SUSPENDED">Suspended</option>
                   </select>
                 ),
               },
@@ -378,10 +455,11 @@ export default function UsersPage() {
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="STORE_MANAGER">Store Manager</option>
-              <option value="WAREHOUSE_MANAGER">Warehouse Manager</option>
-              <option value="STAFF">Staff</option>
-              <option value="CUSTOMER">Customer</option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.name}>
+                  {r.name}
+                </option>
+              ))}
             </select>
           </div>
         </form>

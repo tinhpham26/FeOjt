@@ -32,22 +32,33 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    // Handle 401 Unauthorized
+    // Handle 401 Unauthorized - KHÔNG redirect nếu đang ở trang login/register
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       if (typeof window !== 'undefined') {
-        // Clear auth state and redirect to login
-        localStorage.removeItem(process.env.NEXT_PUBLIC_TOKEN_KEY || 'auth_token')
-        localStorage.removeItem(process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'refresh_token')
-        window.location.href = '/login'
+        const currentPath = window.location.pathname
+        
+        // Chỉ redirect nếu KHÔNG ở trang login/register/forgot-password/reset-password
+        if (!currentPath.includes('/login') && 
+            !currentPath.includes('/register') && 
+            !currentPath.includes('/forgot-password') &&
+            !currentPath.includes('/reset-password')) {
+          // Clear auth state and redirect to login
+          localStorage.removeItem(process.env.NEXT_PUBLIC_TOKEN_KEY || 'auth_token')
+          localStorage.removeItem(process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'refresh_token')
+          window.location.href = '/login'
+        }
       }
     }
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       if (typeof window !== 'undefined') {
-        window.location.href = '/403'
+        const currentPath = window.location.pathname
+        if (!currentPath.includes('/403')) {
+          window.location.href = '/403'
+        }
       }
     }
 
@@ -91,22 +102,33 @@ iamClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    // Handle 401 Unauthorized
+    // Handle 401 Unauthorized - KHÔNG redirect nếu đang ở trang login/register
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       if (typeof window !== 'undefined') {
-        // Clear auth state and redirect to login
-        localStorage.removeItem(process.env.NEXT_PUBLIC_TOKEN_KEY || 'auth_token')
-        localStorage.removeItem(process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'refresh_token')
-        window.location.href = '/login'
+        const currentPath = window.location.pathname
+        
+        // Chỉ redirect nếu KHÔNG ở trang login/register/forgot-password/reset-password
+        if (!currentPath.includes('/login') && 
+            !currentPath.includes('/register') && 
+            !currentPath.includes('/forgot-password') &&
+            !currentPath.includes('/reset-password')) {
+          // Clear auth state and redirect to login
+          localStorage.removeItem(process.env.NEXT_PUBLIC_TOKEN_KEY || 'auth_token')
+          localStorage.removeItem(process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'refresh_token')
+          window.location.href = '/login'
+        }
       }
     }
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       if (typeof window !== 'undefined') {
-        window.location.href = '/403'
+        const currentPath = window.location.pathname
+        if (!currentPath.includes('/403')) {
+          window.location.href = '/403'
+        }
       }
     }
 

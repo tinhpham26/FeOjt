@@ -43,16 +43,24 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    console.log('Login form submitted')
+    
+    // Reset error state
     setError('')
     setHasError(false)
-    setLoading(true)
 
+    // Validation
     if (!emailOrPhone || !password) {
+      console.log('Validation failed: empty fields')
       setError('Vui lòng nhập đầy đủ thông tin')
       setHasError(true)
-      setLoading(false)
       return
     }
+
+    setLoading(true)
+    console.log('Calling auth service...')
 
     try {
       // Gọi backend IAM microservice thông qua authService
@@ -60,6 +68,8 @@ export default function LoginPage() {
         email: emailOrPhone.trim(),
         password: password,
       })
+
+      console.log('Login successful:', data)
 
       // Backend trả về: { success, message, data: { accessToken, email, fullName, roleId } }
       const responseData = data.data || data
@@ -97,9 +107,12 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error('Login error:', err)
       const errorMessage = err.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+      console.log('Setting error message:', errorMessage)
       setError(errorMessage)
       setHasError(true)
+    } finally {
       setLoading(false)
+      console.log('Login process finished')
     }
   }
 
@@ -258,15 +271,21 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-5" 
+              autoComplete="off" 
+              noValidate
+              onReset={(e) => e.preventDefault()}
+            >
               {/* Hidden inputs to trick browser */}
-              <input type="text" name="fakeusername" style={{ display: 'none' }} />
-              <input type="password" name="fakepassword" style={{ display: 'none' }} />
+              <input type="text" name="fakeusername" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+              <input type="password" name="fakepassword" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
               
               <Input
                 label="Số điện thoại hoặc Email"
                 type="text"
-                name="email"
+                name="username-field"
                 placeholder="0901234567 hoặc email@example.com"
                 value={emailOrPhone}
                 onChange={(e) => {
@@ -274,6 +293,15 @@ export default function LoginPage() {
                   if (hasError) {
                     setError('')
                     setHasError(false)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!loading && emailOrPhone && password) {
+                      handleSubmit(e as any)
+                    }
                   }
                 }}
                 required
@@ -286,7 +314,7 @@ export default function LoginPage() {
               <Input
                 label="Mật khẩu"
                 type="password"
-                name="password"
+                name="password-field"
                 placeholder="Nhập mật khẩu"
                 value={password}
                 onChange={(e) => {
@@ -294,6 +322,15 @@ export default function LoginPage() {
                   if (hasError) {
                     setError('')
                     setHasError(false)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!loading && emailOrPhone && password) {
+                      handleSubmit(e as any)
+                    }
                   }
                 }}
                 required
@@ -325,9 +362,15 @@ export default function LoginPage() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#0F8A5F] hover:bg-[#0B6B4B] text-white" 
+                className="w-full bg-[#0F8A5F] hover:bg-[#0B6B4B] text-white disabled:opacity-50 disabled:cursor-not-allowed" 
                 size="lg"
-                disabled={loading}
+                disabled={loading || !emailOrPhone || !password}
+                onClick={(e) => {
+                  if (loading) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }
+                }}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

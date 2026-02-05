@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
         is_system,
         created_at as createdAt
       FROM roles
+      WHERE id != 1
       ORDER BY id
     `
 
