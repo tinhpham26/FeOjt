@@ -1,4 +1,4 @@
-import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
+import { Header } from '@/shared/ui/Header'
 import { CategoryBreadcrumb } from '@/features/catalog/components/CategoryBreadcrumb'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -29,7 +29,7 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <CustomerHeader />
+      <Header />
 
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 py-6">

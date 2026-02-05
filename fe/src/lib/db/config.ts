@@ -1,10 +1,20 @@
 import sql from 'mssql'
 
+// Debug: Log environment variables
+console.log('🔧 DB Config:', {
+  user: process.env.DB_USER,
+  hasPassword: !!process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_NAME,
+  encrypt: process.env.DB_ENCRYPT,
+  trustCert: process.env.DB_TRUST_CERT,
+})
+
 const config: sql.config = {
   user: process.env.DB_USER || 'sa',
   password: process.env.DB_PASSWORD || '',
   server: process.env.DB_SERVER || 'localhost',
-  database: process.env.DB_NAME || 'BHX_FSCMS',
+  database: process.env.DB_NAME || 'IdentityDB',
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true', // Use true for Azure
     trustServerCertificate: process.env.DB_TRUST_CERT === 'true', // Use true for local dev

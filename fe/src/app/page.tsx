@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CustomerHeader } from '@/features/catalog/components/CustomerHeader'
+import { Header } from '@/shared/ui/Header'
 import { HeroBanner } from '@/features/promotions/components/HeroBanner'
 import { QuickCategories } from '@/features/catalog/components/QuickCategories'
 import { ShortcutGrid } from '@/features/catalog/components/ShortcutGrid'
@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <CustomerHeader />
+      <Header />
 
       {/* Category Drawer Overlay */}
       {isCategoryDrawerOpen && (
