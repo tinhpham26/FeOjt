@@ -18,21 +18,21 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!fullName || !email || !password || !confirmPassword) {
       return NextResponse.json(
-        { error: 'Vui lòng điền đầy đủ thông tin bắt buộc' },
+        { success: false, error: 'Vui lòng điền đầy đủ thông tin bắt buộc' },
         { status: 400 }
       )
     }
 
     if (password !== confirmPassword) {
       return NextResponse.json(
-        { error: 'Mật khẩu xác nhận không khớp' },
+        { success: false, error: 'Mật khẩu xác nhận không khớp' },
         { status: 400 }
       )
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Mật khẩu phải có ít nhất 6 ký tự' },
+        { success: false, error: 'Mật khẩu phải có ít nhất 6 ký tự' },
         { status: 400 }
       )
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Email không hợp lệ' },
+        { success: false, error: 'Email không hợp lệ' },
         { status: 400 }
       )
     }
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (emailCheck[0].count > 0) {
       return NextResponse.json(
-        { error: 'Email đã được sử dụng' },
+        { success: false, error: 'Email đã được sử dụng' },
         { status: 409 }
       )
     }
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
       if (phoneCheck[0].count > 0) {
         return NextResponse.json(
-          { error: 'Số điện thoại đã được sử dụng' },
+          { success: false, error: 'Số điện thoại đã được sử dụng' },
           { status: 409 }
         )
       }
@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
+        success: true,
         message: 'Đăng ký tài khoản thành công',
         user: {
           id: newUser.id,
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Register error:', error)
     return NextResponse.json(
-      { error: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.' },
+      { success: false, error: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.' },
       { status: 500 }
     )
   }
