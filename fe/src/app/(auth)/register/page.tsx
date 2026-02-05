@@ -47,6 +47,13 @@ export default function RegisterPage() {
       return
     }
 
+    // Validate phone number (10-12 digits)
+    const phoneRegex = /^\d{10,12}$/
+    if (!phoneRegex.test(formData.phone)) {
+      setError('Số điện thoại phải có 10-12 chữ số')
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Mật khẩu nhập lại không khớp')
       return
@@ -69,7 +76,7 @@ export default function RegisterPage() {
       const data = await authService.register({
         fullName: formData.fullName,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone || '', // Backend require Phone
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       })

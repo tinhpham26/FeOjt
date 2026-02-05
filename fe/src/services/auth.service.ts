@@ -35,10 +35,18 @@ interface LoginResponse {
 }
 
 interface RegisterRequest {
-  fullName: string
-  email: string
+  FullName?: string
+  Name?: string
+  Email: string
+  Phone: string // Backend require Phone
+  Password: string
+  ConfirmPassword?: string
+  // Lowercase cho FE
+  fullName?: string
+  name?: string
+  email?: string
   phone?: string
-  password: string
+  password?: string
   confirmPassword?: string
 }
 
@@ -82,9 +90,31 @@ export const authService = {
    */
   register: async (data: RegisterRequest): Promise<RegisterResponse> => {
     try {
-      const response = await iamClient.post<RegisterResponse>(iamEndpoints.auth.register, data)
+      // Transform camelCase to PascalCase for backend
+      const payload = {
+        FullName: data.fullName || data.FullName,
+        Email: data.email || data.Email,
+        Phone: data.phone || data.Phone,
+        Password: data.password || data.Password,
+        ConfirmPassword: data.confirmPassword || data.ConfirmPassword,
+      }
+      
+      console.log('🔵 Register Request:', {
+        url: iamEndpoints.auth.register,
+        payload
+      })
+      
+      const response = await iamClient.post<RegisterResponse>(iamEndpoints.auth.register, payload)
+      
+      console.log('✅ Register Response:', response.data)
       return response.data
     } catch (error: any) {
+      console.error('❌ Register Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      })
+      
       const apiError = error.response?.data as ApiErrorResponse
       throw new Error(apiError?.error || apiError?.message || 'Đăng ký thất bại')
     }
