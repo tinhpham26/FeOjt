@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/ui/Button'
@@ -8,7 +8,8 @@ import { Input } from '@/shared/ui/Input'
 import { Checkbox } from '@/shared/ui/Checkbox'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { rolePermissions } from '@/shared/auth/permission-map'
-import type { User } from '@/shared/types'
+import { authService } from '@/services/auth.service'
+import type { User, UserRole } from '@/shared/types'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,97 +20,100 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [hasError, setHasError] = useState(false)
 
-  // Luôn hiển thị trang đăng nhập khi người dùng chọn "Đăng nhập"
-  // (Không tự động chuyển hướng sang trang khách hàng nếu đã đăng nhập)
+  // Prefetch routes để giảm độ trễ khi chuyển trang
+  useEffect(() => {
+    router.prefetch('/admin/dashboard')
+    router.prefetch('/ops')
+    router.prefetch('/customer')
+  }, [router])
 
-  // Helper function to map roleId from database to role string
-  const mapRoleIdToRole = (roleId: number): User['role'] => {
+  // Map roleId sang role name
+  const getRoleFromRoleId = useCallback((roleId: number): UserRole => {
     switch (roleId) {
-      case 1:
-        return 'ADMIN'
-      case 2:
-        return 'STORE_MANAGER'
-      case 3:
-        return 'WAREHOUSE_MANAGER'
-      case 4:
-        return 'STAFF'
-      case 5:
-        return 'CUSTOMER'
-      default:
-        return 'CUSTOMER' // Default to customer if unknown role
+      case 1: return 'ADMIN'
+      case 2: return 'STORE_MANAGER'
+      case 3: return 'WAREHOUSE_MANAGER'
+      case 4: return 'STAFF'
+      case 5: return 'CUSTOMER'
+      default: return 'CUSTOMER'
     }
-  }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    console.log('Login form submitted')
+    
+    // Reset error state
     setError('')
-    setLoading(true)
+    setHasError(false)
 
+    // Validation
     if (!emailOrPhone || !password) {
+      console.log('Validation failed: empty fields')
       setError('Vui lòng nhập đầy đủ thông tin')
-      setLoading(false)
+      setHasError(true)
       return
     }
 
+    setLoading(true)
+    console.log('Calling auth service...')
+
     try {
-      // Call real API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: emailOrPhone.trim(),
-          password: password,
-        }),
+      // Gọi backend IAM microservice thông qua authService
+      const data = await authService.login({
+        email: emailOrPhone.trim(),
+        password: password,
       })
 
-      const result = await response.json()
+      console.log('Login successful:', data)
 
-      if (!response.ok || !result.success) {
-        setError(result.message || 'Đăng nhập thất bại')
-        setLoading(false)
-        return
+      // Backend trả về: { success, message, data: { accessToken, email, fullName, roleId } }
+      const responseData = data.data || data
+      const token = responseData.accessToken || data.accessToken || data.token
+
+      if (!token) {
+        throw new Error('Không nhận được token từ server')
       }
 
-      // Map roleId to role string
-      const role = mapRoleIdToRole(result.data.roleId)
-      
-      // Create user object
+      const userRole = getRoleFromRoleId(responseData.roleId || 5)
+      const userEmail = responseData.email || emailOrPhone.trim()
+
+      // Tạo user object và login song song
       const user: User = {
-        id: result.data.id,
-        name: result.data.fullName,
-        email: emailOrPhone.trim(),
-        role: role,
-        permissions: rolePermissions[role as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        id: responseData.userId || responseData.id || userEmail,
+        name: responseData.fullName || responseData.name || 'User',
+        email: userEmail,
+        role: userRole,
+        permissions: rolePermissions[userRole as keyof typeof rolePermissions] ?? rolePermissions.CUSTOMER,
+        createdAt: responseData.createdAt || new Date().toISOString(),
+        updatedAt: responseData.updatedAt || new Date().toISOString(),
       }
 
-      // Login with real data
-      login(user, result.data.accessToken)
+      // Update auth state
+      login(user, token)
 
-      // Redirect based on role
-      if (role === 'ADMIN') {
-        router.push('/admin/dashboard')
-      } else if (role === 'STORE_MANAGER' || role === 'WAREHOUSE_MANAGER' || role === 'STAFF') {
-        router.push('/ops')
+      // Route based on user role (router.push with replace để tránh back)
+      if (userRole === 'ADMIN') {
+        router.replace('/admin/dashboard')
+      } else if (userRole === 'STORE_MANAGER' || userRole === 'WAREHOUSE_MANAGER' || userRole === 'STAFF') {
+        router.replace('/ops')
       } else {
-        router.push('/customer')
+        router.replace('/customer')
       }
-
+    } catch (err: any) {
+      console.error('Login error:', err)
+      const errorMessage = err.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+      console.log('Setting error message:', errorMessage)
+      setError(errorMessage)
+      setHasError(true)
+    } finally {
       setLoading(false)
-    } catch (error) {
-      console.error('Login error:', error)
-      setError('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.')
-      setLoading(false)
+      console.log('Login process finished')
     }
-  }
-
-  const handleOTPLogin = () => {
-    // TODO: Implement OTP login flow
-    alert('Tính năng đăng nhập bằng OTP đang được phát triển')
   }
 
   const goBackToHomepage = () => {
@@ -267,25 +271,73 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-5" 
+              autoComplete="off" 
+              noValidate
+              onReset={(e) => e.preventDefault()}
+            >
+              {/* Hidden inputs to trick browser */}
+              <input type="text" name="fakeusername" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+              <input type="password" name="fakepassword" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+              
               <Input
                 label="Số điện thoại hoặc Email"
                 type="text"
+                name="username-field"
                 placeholder="0901234567 hoặc email@example.com"
                 value={emailOrPhone}
-                onChange={(e) => setEmailOrPhone(e.target.value)}
+                onChange={(e) => {
+                  setEmailOrPhone(e.target.value)
+                  if (hasError) {
+                    setError('')
+                    setHasError(false)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!loading && emailOrPhone && password) {
+                      handleSubmit(e as any)
+                    }
+                  }
+                }}
                 required
-                className="focus:border-[#0F8A5F] focus:ring-[#0F8A5F]"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                className={`${hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#0F8A5F] focus:ring-[#0F8A5F]'}`}
               />
 
               <Input
                 label="Mật khẩu"
                 type="password"
+                name="password-field"
                 placeholder="Nhập mật khẩu"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (hasError) {
+                    setError('')
+                    setHasError(false)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!loading && emailOrPhone && password) {
+                      handleSubmit(e as any)
+                    }
+                  }
+                }}
                 required
-                className="focus:border-[#0F8A5F] focus:ring-[#0F8A5F]"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                className={`${hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#0F8A5F] focus:ring-[#0F8A5F]'}`}
               />
 
               <div className="flex items-center justify-between">
@@ -310,9 +362,15 @@ export default function LoginPage() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#0F8A5F] hover:bg-[#0B6B4B] text-white" 
+                className="w-full bg-[#0F8A5F] hover:bg-[#0B6B4B] text-white disabled:opacity-50 disabled:cursor-not-allowed" 
                 size="lg"
-                disabled={loading}
+                disabled={loading || !emailOrPhone || !password}
+                onClick={(e) => {
+                  if (loading) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }
+                }}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

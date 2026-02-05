@@ -49,6 +49,8 @@ export async function PUT(
     const body = await request.json()
     const { name, email, password, role, status } = body
 
+    console.log('PUT /api/users/[id] - Request:', { id: params.id, body })
+
     // Get role_id if role is provided
     let roleId = null
     if (role) {
@@ -84,6 +86,8 @@ export async function PUT(
       updates.push('status = @status')
       queryParams.status = status
     }
+
+    console.log('Update query params:', { updates, queryParams })
 
     if (updates.length === 0) {
       return NextResponse.json(

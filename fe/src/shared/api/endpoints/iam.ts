@@ -4,13 +4,13 @@ const SERVICE_URLS = {
 
 export const iamEndpoints = {
   auth: {
-    login: '/auth/login',
-    logout: '/auth/logout',
-    register: '/auth/register',
-    refreshToken: '/auth/refresh',
-    forgotPassword: '/auth/forgot-password',
-    resetPassword: '/auth/reset-password',
-    me: '/auth/me',
+    login: '/api/Auth/login',
+    logout: '/api/Auth/logout',
+    register: '/api/Auth/register',
+    refreshToken: '/api/Auth/refresh',
+    forgotPassword: '/api/Auth/forgot-password',
+    resetPassword: '/api/Auth/reset-password',
+    me: '/api/Auth/me',
   },
   users: {
     list: '/users',
