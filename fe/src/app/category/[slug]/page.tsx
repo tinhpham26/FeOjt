@@ -64,8 +64,9 @@ export default async function CategoryPage({ params }: PageProps) {
         {products.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {products.map((product) => (
-              <div
+              <Link
                 key={product.id}
+                href={`/product/${product.id}`}
                 className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer group"
               >
                 {/* Discount Badge */}
@@ -106,7 +107,7 @@ export default async function CategoryPage({ params }: PageProps) {
                 <button className="w-full py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors font-medium">
                   Thêm vào giỏ
                 </button>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (

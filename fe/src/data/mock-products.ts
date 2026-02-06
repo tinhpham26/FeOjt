@@ -9,6 +9,13 @@ export const CATEGORIES: Category[] = [
   { slug: 'nuoc-uong', name: 'Nước uống', icon: '🥤', description: 'Nước giải khát các loại' },
   { slug: 'banh-keo', name: 'Bánh kẹo', icon: '🍪', description: 'Bánh kẹo, snack đa dạng' },
   { slug: 'khuyen-mai-hot', name: 'Khuyến mãi hot', icon: '🔥', description: 'Sản phẩm đang có ưu đãi đặc biệt' },
+  
+  // Subcategories from mega menu
+  { slug: 'nuoc-lau-nha', name: 'Nước Lau Nhà', icon: '🧴', description: 'Các loại nước lau nhà, tẩy rửa' },
+  { slug: 'nuoc-giat', name: 'Nước Giặt', icon: '🧺', description: 'Nước giặt các loại' },
+  { slug: 'nuoc-rua-chen', name: 'Nước Rửa Chén', icon: '🍽️', description: 'Nước rửa chén an toàn' },
+  { slug: 'nuoc-xa-vai', name: 'Nước Xả Vải', icon: '👕', description: 'Nước xả vải thơm lâu' },
+  { slug: 'bot-giat', name: 'Bột Giặt', icon: '📦', description: 'Bột giặt hiệu quả' },
 ]
 
 // Mock products data
@@ -82,4 +89,29 @@ export const MOCK_PRODUCTS: Product[] = [
   { id: 54, name: 'Bánh Oreo', price: 22000, originalPrice: 32000, unit: 'gói', image: '🍪', categorySlug: 'khuyen-mai-hot', description: 'Oreo giảm giá 31%', stock: 150, discount: 31 },
   { id: 55, name: 'Nho Mỹ không hạt', price: 79000, originalPrice: 120000, unit: 'kg', image: '🍇', categorySlug: 'khuyen-mai-hot', description: 'Nho Mỹ giảm giá 34%', stock: 20, discount: 34 },
   { id: 56, name: 'Tôm sú tươi', price: 139000, originalPrice: 199000, unit: 'kg', image: '🦐', categorySlug: 'khuyen-mai-hot', description: 'Tôm sú giảm giá 30%', stock: 18, discount: 30 },
+
+  // Nước lau nhà
+  { id: 57, name: 'Nước lau nhà Sunlight 3.8kg', price: 89000, unit: 'can', image: '🧴', categorySlug: 'nuoc-lau-nha', description: 'Nước lau nhà Sunlight hương chanh', stock: 80 },
+  { id: 58, name: 'Nước lau sàn Vim 900ml', price: 35000, unit: 'chai', image: '🧴', categorySlug: 'nuoc-lau-nha', description: 'Nước lau sàn Vim diệt khuẩn', stock: 120 },
+  { id: 59, name: 'Nước lau nhà Omo 1.5kg', price: 65000, unit: 'chai', image: '🧴', categorySlug: 'nuoc-lau-nha', description: 'Nước lau nhà Omo hương lavender', stock: 95 },
+  { id: 60, name: 'Nước tẩy rửa Mr. Clean', price: 42000, unit: 'chai 500ml', image: '🧴', categorySlug: 'nuoc-lau-nha', description: 'Nước tẩy rửa đa năng', stock: 110 },
+  { id: 61, name: 'Nước lau kính Windex 500ml', price: 38000, unit: 'chai', image: '🧴', categorySlug: 'nuoc-lau-nha', description: 'Nước lau kính không vệt', stock: 85 },
+
+  // Nước giặt
+  { id: 62, name: 'Nước giặt OMO Matic 3.7kg', price: 179000, unit: 'túi', image: '🧺', categorySlug: 'nuoc-giat', description: 'Nước giặt OMO cho máy giặt', stock: 90 },
+  { id: 63, name: 'Nước giặt Tide 2.4kg', price: 145000, unit: 'túi', image: '🧺', categorySlug: 'nuoc-giat', description: 'Nước giặt Tide trắng sáng', stock: 75 },
+  { id: 64, name: 'Nước giặt Ariel 2.4kg', price: 159000, unit: 'túi', image: '🧺', categorySlug: 'nuoc-giat', description: 'Nước giặt Ariel đậm đặc', stock: 85 },
+
+  // Nước rửa chén
+  { id: 65, name: 'Nước rửa chén Sunlight 750g', price: 32000, unit: 'chai', image: '🍽️', categorySlug: 'nuoc-rua-chen', description: 'Nước rửa chén Sunlight chanh', stock: 150 },
+  { id: 66, name: 'Nước rửa chén Vim 600ml', price: 28000, unit: 'chai', image: '🍽️', categorySlug: 'nuoc-rua-chen', description: 'Nước rửa chén Vim trà xanh', stock: 130 },
+  { id: 67, name: 'Nước rửa chén Lix 800g', price: 25000, unit: 'chai', image: '🍽️', categorySlug: 'nuoc-rua-chen', description: 'Nước rửa chén Lix bạc hà', stock: 140 },
+
+  // Nước xả vải
+  { id: 68, name: 'Nước xả vải Comfort 3.2L', price: 125000, unit: 'túi', image: '👕', categorySlug: 'nuoc-xa-vai', description: 'Nước xả vải Comfort hương nước hoa', stock: 70 },
+  { id: 69, name: 'Nước xả vải Downy 2.3L', price: 98000, unit: 'túi', image: '👕', categorySlug: 'nuoc-xa-vai', description: 'Nước xả vải Downy thơm lâu', stock: 80 },
+
+  // Bột giặt
+  { id: 70, name: 'Bột giặt OMO 5.5kg', price: 189000, unit: 'túi', image: '📦', categorySlug: 'bot-giat', description: 'Bột giặt OMO trắng sáng', stock: 60 },
+  { id: 71, name: 'Bột giặt Tide 3.8kg', price: 145000, unit: 'hộp', image: '📦', categorySlug: 'bot-giat', description: 'Bột giặt Tide khử mùi', stock: 55 },
 ]

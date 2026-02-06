@@ -5,6 +5,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { useCartStore } from '@/store/cart.store'
+import { MegaMenu } from './MegaMenu'
+import { DeliveryLocationSelector } from './DeliveryLocationSelector'
 
 interface SearchSuggestion {
   id: string
@@ -13,14 +16,6 @@ interface SearchSuggestion {
   image?: string
   category?: string
   price?: number
-}
-
-interface CartItem {
-  id: string
-  name: string
-  image: string
-  price: number
-  quantity: number
 }
 
 const MOCK_SUGGESTIONS: SearchSuggestion[] = [
@@ -35,15 +30,10 @@ const TRENDING_SEARCHES = [
   '🔥 Rau củ tươi', '🔥 Thịt heo', '🎁 Khuyến mãi', '🥗 Trái cây', '🍖 Thịt bò'
 ]
 
-const MOCK_CART_ITEMS: CartItem[] = [
-  { id: '1', name: 'Cà chua bi', image: '/products/tomato.jpg', price: 25000, quantity: 2 },
-  { id: '2', name: 'Thịt ba chỉ heo', image: '/products/pork.jpg', price: 89000, quantity: 1 },
-  { id: '3', name: 'Sữa tươi Vinamilk', image: '/products/milk.jpg', price: 32000, quantity: 3 }
-]
-
 export function Header() {
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuth()
+  const { items: cartItems, removeItem, getTotalItems, getTotalPrice } = useCartStore()
   
   // State management
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,10 +41,8 @@ export function Header() {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showCartPreview, setShowCartPreview] = useState(false)
-  const [cartItems, setCartItems] = useState<CartItem[]>(MOCK_CART_ITEMS)
   const [recentSearches, setRecentSearches] = useState<string[]>(['Rau củ', 'Thịt heo', 'Trái cây'])
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showSupportMenu, setShowSupportMenu] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   
@@ -132,7 +120,7 @@ export function Header() {
     setSearchQuery(suggestion.text)
     setShowSuggestions(false)
     if (suggestion.type === 'product') {
-      router.push(`/customer/products/${suggestion.id}`)
+      router.push(`/product/${suggestion.id}`)
     } else if (suggestion.type === 'category') {
       router.push(`/customer/category/${suggestion.id}`)
     } else {
@@ -146,17 +134,13 @@ export function Header() {
     router.push('/login')
   }
 
-  const removeFromCart = (itemId: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== itemId))
-  }
-
   const removeRecentSearch = (search: string) => {
     setRecentSearches(prev => prev.filter(s => s !== search))
   }
 
-  // Calculated values
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
-  const cartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  // Calculated values from cart store
+  const cartCount = getTotalItems()
+  const cartTotal = getTotalPrice()
 
   // Fix hydration mismatch
   useEffect(() => {
@@ -185,7 +169,7 @@ export function Header() {
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-white group-hover:scale-105 transition-all duration-300">
                   <Image
                     src="/logocty.png"
-                    alt="Bách Hóa XANH"
+                    alt="Bách Hóa Xanh"
                     width={48}
                     height={48}
                     className="object-cover w-full h-full"
@@ -193,7 +177,9 @@ export function Header() {
                   />
                 </div>
                 <div className="hidden md:block">
-                  <div className="font-bold text-white text-2xl leading-tight tracking-tight whitespace-nowrap">Bách Hóa XANH</div>
+                  <div className="font-extrabold text-[22px] leading-tight tracking-wide whitespace-nowrap">
+                    <span className="text-white">Bách Hóa Xanh </span>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -208,7 +194,7 @@ export function Header() {
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
                     onFocus={() => setShowSuggestions(true)}
-                    className="w-full h-[40px] pl-4 pr-12 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200 text-gray-700 text-sm"
+                    className="w-full h-[40px] pl-4 pr-12 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200 text-gray-700 text-[13px] font-normal"
                   />
                   <button
                     type="submit"
@@ -236,7 +222,7 @@ export function Header() {
                   {searchQuery === '' && recentSearches.length > 0 && (
                     <div className="p-4 border-b border-gray-100">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tìm kiếm gần đây</span>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tìm kiếm gần đây</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {recentSearches.map((search, index) => (
@@ -246,12 +232,12 @@ export function Header() {
                               setSearchQuery(search)
                               handleSearch(search)
                             }}
-                            className="group flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 rounded-full text-sm transition-all duration-200"
+                            className="group flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 rounded-full text-[13px] transition-all duration-200"
                           >
                             <svg className="w-4 h-4 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span className="text-gray-700 group-hover:text-emerald-700">{search}</span>
+                            <span className="font-medium text-gray-700 group-hover:text-emerald-700">{search}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -272,7 +258,7 @@ export function Header() {
                   {/* Trending searches */}
                   {searchQuery === '' && (
                     <div className="p-4 border-b border-gray-100">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Xu hướng tìm kiếm</span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Xu hướng tìm kiếm</span>
                       <div className="flex flex-wrap gap-2">
                         {TRENDING_SEARCHES.map((trend, index) => (
                           <button
@@ -282,7 +268,7 @@ export function Header() {
                               setSearchQuery(cleanTrend)
                               handleSearch(cleanTrend)
                             }}
-                            className="px-3 py-1.5 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 rounded-full text-sm text-gray-700 hover:text-gray-900 transition-all duration-200 border border-orange-200/50"
+                            className="px-3 py-1.5 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 rounded-full text-[13px] font-medium text-gray-700 hover:text-gray-900 transition-all duration-200 border border-orange-200/50"
                           >
                             {trend}
                           </button>
@@ -323,14 +309,14 @@ export function Header() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                               )}
-                              <span className="font-medium text-gray-900">{suggestion.text}</span>
+                              <span className="font-semibold text-gray-900">{suggestion.text}</span>
                             </div>
                             {suggestion.category && (
-                              <div className="text-xs text-gray-500 mt-0.5">{suggestion.category}</div>
+                              <div className="text-[11px] text-gray-500 mt-0.5">{suggestion.category}</div>
                             )}
                           </div>
                           {suggestion.price && (
-                            <div className="font-semibold text-emerald-600 text-sm">
+                            <div className="font-bold text-emerald-600 text-[13px]">
                               {formatPrice(suggestion.price)}
                             </div>
                           )}
@@ -345,8 +331,8 @@ export function Header() {
                       <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                      <p className="text-gray-500 font-medium">Không tìm thấy kết quả</p>
-                      <p className="text-sm text-gray-400 mt-1">Thử tìm kiếm với từ khóa khác</p>
+                      <p className="text-gray-500 font-semibold">Không tìm thấy kết quả</p>
+                      <p className="text-[13px] text-gray-400 mt-1">Thử tìm kiếm với từ khóa khác</p>
                     </div>
                   )}
                 </div>
@@ -356,14 +342,8 @@ export function Header() {
             {/* Right section */}
             <div className="flex items-center gap-[30px] ml-auto">
 
-              {/* Giao Hàng button */}
-              <button className="hidden lg:flex items-center gap-2 h-[40px] px-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="text-sm font-medium">Giao Hàng</span>
-              </button>
+              {/* Delivery Location Selector */}
+              <DeliveryLocationSelector />
 
               {/* Cart - Giỏ hàng */}
               <div ref={cartRef} className="relative">
@@ -375,9 +355,9 @@ export function Header() {
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="hidden lg:inline text-white font-medium text-sm">Giỏ hàng ({cartCount})</span>
+                  <span className="hidden lg:inline text-white font-semibold text-[13px]">Giỏ hàng ({cartCount})</span>
                   {cartCount > 0 && (
-                    <span className="md:hidden absolute -top-1 -right-1 min-w-[20px] h-5 bg-yellow-400 text-green-600 text-xs rounded-full flex items-center justify-center font-bold px-1.5">
+                    <span className="md:hidden absolute -top-1 -right-1 min-w-[20px] h-5 bg-yellow-400 text-green-600 text-[11px] rounded-full flex items-center justify-center font-extrabold px-1.5">
                       {cartCount}
                     </span>
                   )}
@@ -388,8 +368,8 @@ export function Header() {
                   <div className="absolute right-0 top-full mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-gray-900">Giỏ hàng của bạn</h3>
-                        <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                        <h3 className="font-bold text-gray-900 text-[15px]">Giỏ hàng của bạn</h3>
+                        <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-[11px] font-extrabold rounded-full">
                           {cartCount} sản phẩm
                         </span>
                       </div>
@@ -400,24 +380,18 @@ export function Header() {
                           {cartItems.map((item) => (
                             <div key={item.id} className="p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                               <div className="flex items-center gap-3">
-                                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
-                                  <Image
-                                    src={item.image}
-                                    alt={item.name}
-                                    width={64}
-                                    height={64}
-                                    className="w-full h-full object-cover"
-                                  />
+                                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center text-3xl border border-gray-200">
+                                  {item.image}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-gray-900 text-sm line-clamp-2">{item.name}</p>
+                                  <p className="font-semibold text-gray-900 text-[13px] line-clamp-2">{item.name}</p>
                                   <div className="flex items-center justify-between mt-1">
-                                    <span className="text-sm text-gray-600">SL: {item.quantity}</span>
-                                    <span className="font-semibold text-emerald-600 text-sm">{formatPrice(item.price)}</span>
+                                    <span className="text-[13px] text-gray-600">SL: {item.quantity}</span>
+                                    <span className="font-bold text-emerald-600 text-[13px]">{formatPrice(item.price * item.quantity)}</span>
                                   </div>
                                 </div>
                                 <button
-                                  onClick={() => removeFromCart(item.id)}
+                                  onClick={() => removeItem(item.id)}
                                   className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                   aria-label="Xóa"
                                 >
@@ -430,12 +404,13 @@ export function Header() {
                           ))}
                           <div className="p-4 bg-gray-50 border-t border-gray-200">
                             <div className="flex items-center justify-between mb-3">
-                              <span className="font-semibold text-gray-700">Tổng cộng:</span>
-                              <span className="font-bold text-green-600 text-lg">{formatPrice(cartTotal)}</span>
+                              <span className="font-semibold text-gray-700 text-[14px]">Tổng cộng:</span>
+                              <span className="font-extrabold text-green-600 text-[17px]">{formatPrice(cartTotal)}</span>
                             </div>
                             <Link
                               href="/customer/cart"
-                              className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-98"
+                              onClick={() => setShowCartPreview(false)}
+                              className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-bold text-[14px] transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-98"
                             >
                               <span>Xem giỏ hàng</span>
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,10 +424,11 @@ export function Header() {
                           <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                           </svg>
-                          <p className="text-gray-500 font-medium">Giỏ hàng trống</p>
+                          <p className="text-gray-500 font-semibold">Giỏ hàng trống</p>
                           <Link
                             href="/customer"
-                            className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            onClick={() => setShowCartPreview(false)}
+                            className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-[13px] font-semibold transition-colors"
                           >
                             Tiếp tục mua sắm
                           </Link>
@@ -473,7 +449,7 @@ export function Header() {
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span className="hidden lg:inline text-white font-medium text-sm">Tài khoản</span>
+                    <span className="hidden lg:inline text-white font-semibold text-[13px]">Tài khoản</span>
                   </button>
 
                   {/* User dropdown menu */}
@@ -481,12 +457,12 @@ export function Header() {
                     <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold text-[17px] shadow-md">
                             {user.email.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">{user.email}</p>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="font-semibold text-gray-900 text-[14px] truncate">{user.email}</p>
+                            <p className="text-[11px] text-gray-600 mt-0.5">
                               {user.role === 'ADMIN' ? 'Quản trị viên' :
                                user.role === 'STORE_MANAGER' ? 'Quản lý cửa hàng' :
                                user.role === 'WAREHOUSE_MANAGER' ? 'Quản lý kho' :
@@ -503,7 +479,7 @@ export function Header() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          <span className="font-medium">Tài khoản của tôi</span>
+                          <span className="font-semibold text-[13px]">Tài khoản của tôi</span>
                         </Link>
                         <Link
                           href="/customer/orders"
@@ -512,7 +488,7 @@ export function Header() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                           </svg>
-                          <span className="font-medium">Đơn hàng của tôi</span>
+                          <span className="font-semibold text-[13px]">Đơn hàng của tôi</span>
                         </Link>
                         <Link
                           href="/customer/loyalty"
@@ -521,13 +497,13 @@ export function Header() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="font-medium">Điểm tích lũy</span>
+                          <span className="font-semibold text-[13px]">Điểm tích lũy</span>
                         </Link>
                       </div>
                       <div className="border-t border-gray-100 py-2">
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-green-600 font-medium"
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-green-600 font-bold text-[13px]"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -541,7 +517,7 @@ export function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 h-[40px] px-6 bg-white hover:bg-white/90 rounded-full transition-colors text-green-600 font-semibold text-sm"
+                  className="flex items-center gap-2 h-[40px] px-6 bg-white hover:bg-white/90 rounded-full transition-colors text-green-600 font-bold text-[13px]"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -558,194 +534,8 @@ export function Header() {
       <div className="bg-gray-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-6 py-2.5">
-            {/* Danh mục sản phẩm button with hover dropdown */}
-            <div 
-              className="relative"
-              onMouseEnter={() => setIsMobileMenuOpen(true)}
-              onMouseLeave={() => setIsMobileMenuOpen(false)}
-            >
-              <button
-                className="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <span className="text-sm">Danh mục sản phẩm</span>
-              </button>
-
-              {/* Dropdown menu - WinMart style */}
-              {isMobileMenuOpen && (
-                <div className="absolute top-full left-0 mt-0 w-[280px] bg-white border border-gray-200 shadow-2xl z-50 rounded-b-lg overflow-hidden">
-                  <div className="py-1">
-                    <Link
-                      href="/category/gia-sieu-re"
-                      className="flex items-center justify-between px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors"
-                    >
-                      <span>Giá Siêu Rẻ</span>
-                    </Link>
-                    <Link
-                      href="/category/sua-cac-loai"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Sữa các loại</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/rau-cu-trai-cay"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Rau - Củ - Trái Cây</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/hoa-pham-tay-rua"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Hóa Phẩm - Tẩy rửa</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/cham-soc-ca-nhan"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Chăm Sóc Cá Nhân</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/thit-hai-san-tuoi"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Thịt - Hải Sản Tươi</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/banh-keo"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Bánh Kẹo</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/do-uong-co-con"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Đồ uống có cồn</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/do-uong-giai-khat"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Đồ Uống - Giải Khát</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/mi-thuc-pham-an-lien"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Mì - Thực Phẩm Ăn Liền</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/thuc-pham-kho"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Thực Phẩm Khô</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/thuc-pham-che-bien"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Thực Phẩm Chế Biến</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/gia-vi"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Gia vị</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/trung-dau-hat"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Trứng - Dầu Hạt</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/cham-soc-be"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Chăm Sóc Bé</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/do-dung-gia-dinh"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Đồ Dùng Gia Đình</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/dien-gia-dung"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Điện Gia Dụng</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/van-phong-pham-do-choi"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-gray-800 transition-colors"
-                    >
-                      <span>Văn Phòng Phẩm - Đồ Chơi</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <Link
-                      href="/category/dieu-kien-khuyen-mai"
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-blue-600 font-medium transition-colors border-t border-gray-200"
-                    >
-                      <span>Điều kiện khuyến mãi</span>
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Mega Menu - Danh mục sản phẩm */}
+            <MegaMenu />
 
             {/* Tư vấn mua hàng */}
             <div
@@ -755,19 +545,19 @@ export function Header() {
               onMouseLeave={() => setShowSupportMenu(false)}
             >
               <button
-                className="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
+                className="flex items-center gap-2 text-gray-700 hover:text-green-600 font-semibold text-[13px] transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-                <span className="text-sm">Tư vấn mua hàng</span>
+                <span className="text-[13px]">Tư vấn mua hàng</span>
               </button>
 
               {/* Support dropdown */}
               {showSupportMenu && (
                 <div className="absolute top-full left-0 mt-0 w-[280px] bg-white border border-gray-200 shadow-2xl z-50 rounded-b-lg overflow-hidden">
                   <div className="py-1">
-                    <div className="px-4 py-3 bg-green-600 text-white font-semibold">
+                    <div className="px-4 py-3 bg-green-600 text-white font-bold">
                       <div className="flex items-center gap-2 mb-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -783,8 +573,8 @@ export function Header() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
                       <div>
-                        <div className="text-xs text-gray-500">Mua online:</div>
-                        <div className="font-semibold text-green-600">024 71066866</div>
+                        <div className="text-[11px] text-gray-500">Mua online:</div>
+                        <div className="font-bold text-green-600 text-[15px]">024 71066866</div>
                       </div>
                     </a>
                   </div>

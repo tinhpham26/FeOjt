@@ -3,6 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/shared/hooks/useAuth'
 
 /**
  * Hero Banner Images - Place your images in /public/ folder
@@ -84,6 +86,27 @@ const banners: BannerSlide[] = [
 export function HeroBanner() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+
+  const handleCTAClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    
+    // Nếu chưa đăng nhập, chuyển hướng đến trang login
+    if (!isAuthenticated) {
+      router.push('/login')
+      return
+    }
+    
+    // Nếu đã đăng nhập, scroll xuống danh sách sản phẩm
+    const productSection = document.querySelector('[data-product-section]')
+    if (productSection) {
+      productSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      // Fallback: chuyển đến href gốc nếu không tìm thấy section
+      router.push(href)
+    }
+  }
 
   useEffect(() => {
     if (!isAutoPlaying) return
@@ -195,6 +218,7 @@ export function HeroBanner() {
             <div className="pt-2 sm:pt-3">
               <Link
                 href={banner.cta.href}
+                onClick={(e) => handleCTAClick(e, banner.cta.href)}
                 className={`inline-flex items-center gap-2 px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-3.5 rounded-lg font-bold text-sm sm:text-base md:text-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl active:scale-95 uppercase tracking-wide ${
                   banner.textColor === 'light'
                     ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700'

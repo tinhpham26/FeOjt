@@ -1,160 +1,389 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
+import { Input } from '@/shared/ui/Input'
+import { Tabs, Tab } from '@/shared/ui/Tabs'
+import { Avatar } from '@/shared/ui/Avatar'
+import { PasswordInput } from '@/shared/ui/PasswordInput'
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
+import { ToastContainer, ToastItem } from '@/shared/ui/Toast'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { User, Shield, Activity, Save, X, Edit2 } from 'lucide-react'
 
-type TabKey = 'vouchers' | 'orders' | 'profile' | 'addresses' | 'stores'
-
-const storeLocations = [
-  'BHX Quận 1, 123 Nguyễn Huệ',
-  'BHX Quận 3, 456 Lê Văn Sỹ',
-  'BHX Quận 5, 789 Trần Hưng Đạo',
-  'BHX Quận 7, 321 Nguyễn Thị Thập',
-  'BHX Quận 10, 654 Ba Tháng Hai',
-  'BHX Gò Vấp, 987 Quang Trung',
-  'BHX Bình Thạnh, 159 Xô Viết Nghệ Tĩnh',
-]
+type TabKey = 'profile' | 'security' | 'activity'
 
 export default function CustomerProfilePage() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<TabKey>('vouchers')
-  const [storeQuery, setStoreQuery] = useState('')
+  const [activeTab, setActiveTab] = useState<TabKey>('profile')
+  const [isEditing, setIsEditing] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [toasts, setToasts] = useState<ToastItem[]>([])
 
+  // Profile form state
   const [profileForm, setProfileForm] = useState({
-    name: user?.name ?? 'Khách hàng Bách Hóa Xanh',
-    email: user?.email ?? 'khachhang@example.com',
-    phone: '0909 888 999',
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+  })
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({})
+
+  // Password form state
+  const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   })
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({})
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
-  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({})
+  // Loading states
+  const [isSaving, setIsSaving] = useState(false)
 
-  const [addressForm, setAddressForm] = useState({
-    recipient: user?.name ?? 'Khách hàng Bách Hóa Xanh',
-    phone: '0909 888 999',
-    addressLine: 'Tòa nhà BHX, 123 Lê Lợi, Phường Bến Thành',
-    note: 'Giao giờ hành chính',
-  })
+  // Mock activity data
+  const activities = [
+    { id: 1, action: 'Đăng nhập', time: '5/2/2026, 10:30 AM', device: 'Chrome - Windows', location: 'TP.HCM' },
+    { id: 2, action: 'Cập nhật thông tin', time: '1/2/2026, 3:15 PM', device: 'Chrome - Windows', location: 'TP.HCM' },
+    { id: 3, action: 'Đổi mật khẩu', time: '28/1/2026, 9:20 AM', device: 'Safari - iPhone', location: 'TP.HCM' },
+  ]
 
-  const [addressErrors, setAddressErrors] = useState<Record<string, string>>({})
+  const tabs: Tab[] = [
+    { key: 'profile', label: 'Thông tin cá nhân', icon: <User className="w-5 h-5" /> },
+    { key: 'security', label: 'Bảo mật', icon: <Shield className="w-5 h-5" /> },
+    { key: 'activity', label: 'Hoạt động', icon: <Activity className="w-5 h-5" />, badge: activities.length },
+  ]
 
-  const formatVnd = (value: number) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+  const addToast = (message: string, type: ToastItem['type'] = 'info') => {
+    const id = Date.now().toString()
+    setToasts((prev) => [...prev, { id, message, type, onClose: () => removeToast(id) }])
+  }
 
-  const filteredStores = useMemo(() => {
-    const query = storeQuery.trim().toLowerCase()
-    if (!query) return storeLocations
-    return storeLocations.filter((store) => store.toLowerCase().includes(query))
-  }, [storeQuery])
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+  }
+
+  const handleAvatarChange = (file: File) => {
+    // TODO: Upload avatar to server
+    console.log('Uploading avatar:', file)
+    addToast('Đang upload ảnh đại diện...', 'info')
+    
+    // Simulate upload
+    setTimeout(() => {
+      addToast('Cập nhật ảnh đại diện thành công!', 'success')
+    }, 1500)
+  }
 
   const validateProfile = () => {
     const errors: Record<string, string> = {}
-    if (!profileForm.name.trim()) errors.name = 'Vui lòng nhập tên.'
+    if (!profileForm.name.trim()) {
+      errors.name = 'Vui lòng nhập họ tên'
+    }
     if (!profileForm.email.trim()) {
-      errors.email = 'Vui lòng nhập email.'
+      errors.email = 'Vui lòng nhập email'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileForm.email)) {
-      errors.email = 'Email không hợp lệ.'
+      errors.email = 'Email không hợp lệ'
     }
-
-    if (profileForm.newPassword || profileForm.confirmPassword) {
-      if (!profileForm.currentPassword) {
-        errors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại.'
-      }
-      if (profileForm.newPassword.length < 8) {
-        errors.newPassword = 'Mật khẩu mới tối thiểu 8 ký tự.'
-      }
-      if (profileForm.newPassword !== profileForm.confirmPassword) {
-        errors.confirmPassword = 'Mật khẩu xác nhận không khớp.'
-      }
+    if (profileForm.phone && !/^[0-9]{10}$/.test(profileForm.phone.replace(/\s/g, ''))) {
+      errors.phone = 'Số điện thoại không hợp lệ'
     }
-
     setProfileErrors(errors)
     return Object.keys(errors).length === 0
   }
 
-  const validateAddress = () => {
+  const validatePassword = () => {
     const errors: Record<string, string> = {}
-    if (!addressForm.recipient.trim()) errors.recipient = 'Vui lòng nhập người nhận.'
-    if (!addressForm.phone.trim()) errors.phone = 'Vui lòng nhập số điện thoại.'
-    if (!addressForm.addressLine.trim()) errors.addressLine = 'Vui lòng nhập địa chỉ.'
-    setAddressErrors(errors)
+    if (!passwordForm.currentPassword) {
+      errors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại'
+    }
+    if (!passwordForm.newPassword) {
+      errors.newPassword = 'Vui lòng nhập mật khẩu mới'
+    } else if (passwordForm.newPassword.length < 8) {
+      errors.newPassword = 'Mật khẩu phải có ít nhất 8 ký tự'
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.confirmPassword = 'Mật khẩu xác nhận không khớp'
+    }
+    setPasswordErrors(errors)
     return Object.keys(errors).length === 0
   }
 
+  const handleSaveProfile = async () => {
+    if (!validateProfile()) return
+
+    setIsSaving(true)
+    try {
+      // TODO: Call API to update profile
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      addToast('Cập nhật thông tin thành công!', 'success')
+      setIsEditing(false)
+    } catch (error) {
+      addToast('Có lỗi xảy ra. Vui lòng thử lại!', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!validatePassword()) return
+
+    setShowConfirmDialog(false)
+    setIsSaving(true)
+    
+    try {
+      // TODO: Call API to change password
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      addToast('Đổi mật khẩu thành công!', 'success')
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setIsChangingPassword(false)
+    } catch (error) {
+      addToast('Có lỗi xảy ra. Vui lòng thử lại!', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setProfileForm({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+    })
+    setProfileErrors({})
+  }
+
   return (
-    <div className="py-8 px-6">
-      <PageHeader
-        title="My Profile"
-        subtitle="Manage your account information"
-        breadcrumbs={[
-          { label: 'Home', href: '/customer' },
-          { label: 'Profile', href: '/customer/profile' },
-        ]}
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <PageHeader
+          title="Tài khoản của tôi"
+          subtitle="Quản lý thông tin cá nhân và bảo mật"
+          breadcrumbs={[
+            { label: 'Trang chủ', href: '/customer' },
+            { label: 'Tài khoản', href: '/customer/profile' },
+          ]}
+        />
+
+        {/* Profile Card */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <Avatar
+              src={user?.avatar}
+              name={user?.name}
+              size="xl"
+              editable={true}
+              onImageChange={handleAvatarChange}
+            />
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-2xl font-bold text-gray-900">{user?.name || 'Khách hàng'}</h2>
+              <p className="text-gray-600 mt-1">{user?.email || 'No email'}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Tham gia từ {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+              </p>
+            </div>
+            {!isEditing && activeTab === 'profile' && (
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+                className="gap-2"
+              >
+                <Edit2 className="w-4 h-4" />
+                Chỉnh sửa
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={(key) => setActiveTab(key as TabKey)} />
+
+        {/* Tab Content */}
+        <div className="mt-6">
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Thông tin cá nhân</h3>
+              
+              <div className="space-y-6">
+                <Input
+                  label="Họ và tên"
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  error={profileErrors.name}
+                  disabled={!isEditing}
+                  placeholder="Nhập họ và tên"
+                />
+
+                <Input
+                  label="Email"
+                  type="email"
+                  value={profileForm.email}
+                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  error={profileErrors.email}
+                  disabled={!isEditing}
+                  placeholder="Nhập email"
+                />
+
+                <Input
+                  label="Số điện thoại"
+                  type="tel"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                  error={profileErrors.phone}
+                  disabled={!isEditing}
+                  placeholder="Nhập số điện thoại"
+                />
+
+                {isEditing && (
+                  <div className="flex items-center gap-3 pt-4">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={isSaving}
+                      className="gap-2"
+                    >
+                      <Save className="w-4 h-4" />
+                      {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={isSaving}
+                      className="gap-2"
+                    >
+                      <X className="w-4 h-4" />
+                      Hủy
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Security Tab */}
+          {activeTab === 'security' && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Bảo mật tài khoản</h3>
+              
+              {!isChangingPassword ? (
+                <div>
+                  <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg mb-6">
+                    <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900">Mật khẩu hiện tại</p>
+                      <p className="text-sm text-blue-700 mt-1">••••••••</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsChangingPassword(true)}
+                    >
+                      Đổi mật khẩu
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900">Xác thực 2 lớp</p>
+                        <p className="text-sm text-gray-500 mt-1">Tăng cường bảo mật cho tài khoản</p>
+                      </div>
+                      <Button variant="outline" size="sm">Bật</Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <PasswordInput
+                    label="Mật khẩu hiện tại"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    error={passwordErrors.currentPassword}
+                    placeholder="Nhập mật khẩu hiện tại"
+                  />
+
+                  <PasswordInput
+                    label="Mật khẩu mới"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    error={passwordErrors.newPassword}
+                    placeholder="Nhập mật khẩu mới"
+                    showStrength={true}
+                  />
+
+                  <PasswordInput
+                    label="Xác nhận mật khẩu mới"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    error={passwordErrors.confirmPassword}
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+
+                  <div className="flex items-center gap-3 pt-4">
+                    <Button
+                      onClick={() => setShowConfirmDialog(true)}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsChangingPassword(false)
+                        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+                        setPasswordErrors({})
+                      }}
+                      disabled={isSaving}
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Activity Tab */}
+          {activeTab === 'activity' && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Lịch sử hoạt động</h3>
+              
+              <div className="space-y-4">
+                {activities.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Activity className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900">{activity.action}</p>
+                      <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
+                      <p className="text-sm text-gray-500">{activity.device} • {activity.location}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Xác nhận đổi mật khẩu"
+        message="Bạn có chắc chắn muốn đổi mật khẩu? Bạn sẽ cần đăng nhập lại sau khi đổi mật khẩu."
+        confirmText="Đồng ý"
+        cancelText="Hủy"
+        type="warning"
+        onConfirm={handleChangePassword}
+        onCancel={() => setShowConfirmDialog(false)}
+        loading={isSaving}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="card">
-          <div className="text-center mb-6">
-            <div className="w-24 h-24 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-              {user?.name?.charAt(0).toUpperCase() || 'K'}
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900">{user?.name || 'Khách hàng'}</h2>
-            <p className="text-gray-600 text-sm">{user?.email || 'No email'}</p>
-          </div>
-          <Button fullWidth>Edit Profile</Button>
-        </div>
-
-        <div className="lg:col-span-2 card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
-              <input
-                type="text"
-                value={user?.name || ''}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                disabled
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input
-                type="email"
-                value={user?.email || ''}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
-              <input
-                type="tel"
-                value={user?.phone || 'Chưa cập nhật'}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Ngày tham gia</label>
-              <input
-                type="text"
-                value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                disabled
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card mt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Security</h3>
-        <Button variant="outline">Change Password</Button>
-      </div>
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   )
 }

@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useCartStore } from '@/store/cart.store'
+import { useState } from 'react'
 
 interface Product {
   id: number
@@ -26,8 +28,33 @@ interface ProductBlockProps {
 }
 
 export function ProductBlock({ title }: ProductBlockProps) {
+  const { addItem } = useCartStore()
+  const [addedItems, setAddedItems] = useState<Set<number>>(new Set())
+
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id.toString(),
+      name: product.name,
+      image: product.image,
+      price: parseInt(product.price.replace(/[^\d]/g, '')),
+      originalPrice: product.originalPrice ? parseInt(product.originalPrice.replace(/[^\d]/g, '')) : undefined,
+      unit: product.unit,
+      discount: product.discount,
+    })
+    
+    // Show feedback
+    setAddedItems(prev => new Set(prev).add(product.id))
+    setTimeout(() => {
+      setAddedItems(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(product.id)
+        return newSet
+      })
+    }, 2000)
+  }
+
   return (
-    <div>
+    <div data-product-section>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-gray-900">{title}</h3>
         <Link href="/products" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
@@ -37,7 +64,7 @@ export function ProductBlock({ title }: ProductBlockProps) {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {products.map((product) => (
           <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <Link href={`/products/${product.id}`}>
+            <Link href={`/product/${product.id}`}>
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
                 {product.discount && (
                   <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
@@ -48,7 +75,7 @@ export function ProductBlock({ title }: ProductBlockProps) {
               </div>
             </Link>
             <div className="p-3">
-              <Link href={`/products/${product.id}`}>
+              <Link href={`/product/${product.id}`}>
                 <h4 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 hover:text-primary-600">
                   {product.name}
                 </h4>
@@ -60,11 +87,25 @@ export function ProductBlock({ title }: ProductBlockProps) {
                 )}
                 <span className="text-xs text-gray-500">/{product.unit}</span>
               </div>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="text-sm font-medium">Thêm vào giỏ</span>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors"
+                onClick={() => handleAddToCart(product)}
+                disabled={addedItems.has(product.id)}
+              >
+                {addedItems.has(product.id) ? (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm font-medium">Đã thêm</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">Thêm vào giỏ</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
